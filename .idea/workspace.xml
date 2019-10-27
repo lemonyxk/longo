@@ -2,8 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="3aebe95a-6b8b-4f5d-a01d-b508c49919ab" name="Default Changelist" comment="init">
+      <change afterPath="$PROJECT_DIR$/.idea/dictionaries/lemo.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mongo.go" beforeDir="false" afterPath="$PROJECT_DIR$/mongo.go" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -37,6 +38,7 @@
     <property name="GO_FMT" value="true" />
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="aspect.path.notification.shown" value="true" />
     <property name="go.import.settings.migrated" value="true" />
     <property name="go.tried.to.enable.integration.vgo.integrator" value="true" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
@@ -90,6 +92,10 @@
       <workItem from="1572088050889" duration="127000" />
       <workItem from="1572088195917" duration="186000" />
       <workItem from="1572088416228" duration="30000" />
+      <workItem from="1572166774197" duration="52000" />
+      <workItem from="1572166829105" duration="122000" />
+      <workItem from="1572167071804" duration="1628000" />
+      <workItem from="1572175878668" duration="1254000" />
     </task>
     <task id="LOCAL-00001" summary="init">
       <created>1572088365186</created>
