@@ -12,7 +12,7 @@ package mongo
 
 import (
 	"context"
-	
+
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -38,17 +38,17 @@ func (m *Mgo) DB(db string) *DB {
 
 func (m *Mgo) Transaction(fn func(sessionContext SessionContext) error, opts ...*options.TransactionOptions) {
 	_ = m.client.UseSession(context.Background(), func(sessionContext mongo.SessionContext) error {
-		
+
 		var err = sessionContext.StartTransaction(opts...)
 		if err != nil {
 			return err
 		}
-		
+
 		err = fn(sessionContext)
 		if err != nil {
 			return sessionContext.AbortTransaction(sessionContext)
 		}
-		
+
 		return sessionContext.CommitTransaction(sessionContext)
 	})
 }

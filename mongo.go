@@ -12,7 +12,7 @@ package mongo
 
 import (
 	"context"
-	
+
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -115,11 +115,6 @@ func (q *Query) Drop() error {
 	return q.DropWithSession(context.Background())
 }
 
-func (q *Query) Aggregate(pipeline interface{}, opts ...*options.AggregateOptions) *MultiResult {
-	cursor, err := q.client.Database(q.db).Collection(q.collection).Aggregate(context.Background(), pipeline, opts...)
-	return &MultiResult{cursor: cursor, err: err}
-}
-
 func (q *Query) CountDocuments(filter interface{}, opts ...*options.CountOptions) (int64, error) {
 	return q.client.Database(q.db).Collection(q.collection).CountDocuments(context.Background(), filter, opts...)
 }
@@ -132,25 +127,29 @@ func (q *Query) Distinct(fieldName string, filter interface{}, opts ...*options.
 	return q.client.Database(q.db).Collection(q.collection).Distinct(context.Background(), fieldName, filter, opts...)
 }
 
-func (q *Query) Find(filter interface{}, opts ...*options.FindOptions) *MultiResult {
-	cursor, err := q.client.Database(q.db).Collection(q.collection).Find(context.Background(), filter, opts...)
+func (q *Query) Aggregate(pipeline interface{}, opts ...*options.AggregateOptions) *MultiResult {
+	cursor, err := q.client.Database(q.db).Collection(q.collection).Aggregate(context.Background(), pipeline, opts...)
 	return &MultiResult{cursor: cursor, err: err}
 }
 
-func (q *Query) FindOne(filter interface{}, opts ...*options.FindOneOptions) *SingleResult {
-	return &SingleResult{singleResult: q.client.Database(q.db).Collection(q.collection).FindOne(context.Background(), filter, opts...)}
+func (q *Query) Find(filter interface{}) *Find {
+	return &Find{collection: q.client.Database(q.db).Collection(q.collection), filter: filter}
 }
 
-func (q *Query) FindOneAndDelete(filter interface{}, opts ...*options.FindOneAndDeleteOptions) *SingleResult {
-	return &SingleResult{singleResult: q.client.Database(q.db).Collection(q.collection).FindOneAndDelete(context.Background(), filter, opts...)}
+func (q *Query) FindOne(filter interface{}) *FindOne {
+	return &FindOne{collection: q.client.Database(q.db).Collection(q.collection), filter: filter}
 }
 
-func (q *Query) FindOneAndReplace(filter interface{}, replacement interface{}, opts ...*options.FindOneAndReplaceOptions) *SingleResult {
-	return &SingleResult{singleResult: q.client.Database(q.db).Collection(q.collection).FindOneAndReplace(context.Background(), filter, replacement, opts...)}
+func (q *Query) FindOneAndDelete(filter interface{}) *FindOneAndDelete {
+	return &FindOneAndDelete{collection: q.client.Database(q.db).Collection(q.collection), filter: filter}
 }
 
-func (q *Query) FindOneAndUpdate(filter interface{}, update interface{}, opts ...*options.FindOneAndUpdateOptions) *SingleResult {
-	return &SingleResult{singleResult: q.client.Database(q.db).Collection(q.collection).FindOneAndUpdate(context.Background(), filter, update, opts...)}
+func (q *Query) FindOneAndReplace(filter interface{}, replacement interface{}) *FindOneAndReplace {
+	return &FindOneAndReplace{collection: q.client.Database(q.db).Collection(q.collection), filter: filter, replacement: replacement}
+}
+
+func (q *Query) FindOneAndUpdate(filter interface{}, update interface{}, opts ...*options.FindOneAndUpdateOptions) *FindOneAndUpdate {
+	return &FindOneAndUpdate{collection: q.client.Database(q.db).Collection(q.collection), filter: filter, update: update}
 }
 
 func (q *Query) Watch(pipeline interface{}, opts ...*options.ChangeStreamOptions) *ChangeStreamResult {

@@ -11,6 +11,8 @@
 package main
 
 import (
+	"log"
+
 	"go.mongodb.org/mongo-driver/bson"
 
 	"github.com/Lemo-yxk/mongo"
@@ -27,15 +29,18 @@ func main() {
 	}
 
 	// Transaction can not create collection, so you have to create it before you run.
-	mgo.Transaction(func(sessionContext mongo.SessionContext) error {
+	// mgo.Transaction(func(sessionContext mongo.SessionContext) error {
+	//
+	// 	var err error
+	//
+	// 	_, err = mgo.DB("Test").C("test1").InsertOneWithSession(sessionContext, bson.M{"hello": "world"})
+	//
+	// 	_, err = mgo.DB("Test").C("test2").InsertOneWithSession(sessionContext, bson.M{"hello": "world"})
+	//
+	// 	return err
+	// })
 
-		var err error
+	n, _ := mgo.DB("QGame").C("GameUser").CountDocuments(bson.M{"_id": 134369337})
 
-		_, err = mgo.DB("Test").C("test1").InsertOneWithSession(sessionContext, bson.M{"hello": "world"})
-
-		_, err = mgo.DB("Test").C("test2").InsertOneWithSession(sessionContext, bson.M{"hello": "world"})
-
-		return err
-	})
-
+	log.Println(n)
 }
