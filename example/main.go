@@ -26,13 +26,14 @@ func main() {
 		panic(err)
 	}
 
+	// Transaction can not create collection, so you have to create it before you run.
 	mgo.Transaction(func(sessionContext mongo.SessionContext) error {
 
 		var err error
 
-		_, err = mgo.DB("QGame").C("test1").InsertOneWithSession(sessionContext, bson.M{"hello": "world"})
+		_, err = mgo.DB("Test").C("test1").InsertOneWithSession(sessionContext, bson.M{"hello": "world"})
 
-		_, err = mgo.DB("QGame").C("test2").InsertOneWithSession(sessionContext, bson.M{"hello": "world"})
+		_, err = mgo.DB("Test").C("test2").InsertOneWithSession(sessionContext, bson.M{"hello": "world"})
 
 		return err
 	})
