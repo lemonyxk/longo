@@ -8,7 +8,7 @@
 * @create: 2019-10-28 15:32
 **/
 
-package mongo
+package lemongo
 
 import (
 	"go.mongodb.org/mongo-driver/mongo"

@@ -14,16 +14,18 @@ import (
 	"log"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 
-	"github.com/Lemo-yxk/mongo"
+	"github.com/Lemo-yxk/lemongo"
 )
 
 func main() {
 	var url = "mongodb://root:1354243@127.0.0.1:27017,127.0.0.1:27018,127.0.0.1:27019"
 
-	mgo, _ := mongo.NewMongoClient().Connect(&mongo.Config{Url: url})
+	mgo, _ := lemongo.NewMongoClient().Connect(&lemongo.Config{Url: url})
 
-	err := mgo.RawClient().Ping(nil, mongo.ReadPreference.Primary)
+	err := mgo.RawClient().Ping(nil, lemongo.ReadPreference.Primary)
 	if err != nil {
 		panic(err)
 	}
@@ -39,8 +41,7 @@ func main() {
 	//
 	// 	return err
 	// })
-
-	n, _ := mgo.DB("QGame").C("GameUser").CountDocuments(bson.M{"_id": 134369337})
-
-	log.Println(n)
+	var t = true
+	a, err := mgo.DB("Test").C("test").Indexes().CreateOne(mongo.IndexModel{Keys: bson.M{"b": -1}, Options: &options.IndexOptions{Background: &t}})
+	log.Println(a, err)
 }

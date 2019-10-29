@@ -8,11 +8,11 @@
 * @create: 2019-10-28 15:33
 **/
 
-package mongo
+package lemongo
 
 import (
 	"context"
-	
+
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"

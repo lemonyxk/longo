@@ -8,7 +8,7 @@
 * @create: 2019-10-25 21:06
 **/
 
-package mongo
+package lemongo
 
 import (
 	"go.mongodb.org/mongo-driver/mongo/readpref"

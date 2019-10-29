@@ -8,11 +8,11 @@
 * @create: 2019-10-28 15:32
 **/
 
-package mongo
+package lemongo
 
 import (
 	"context"
-	
+
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -40,4 +40,3 @@ func (ct *ChangeStreamResult) ResumeToken(result interface{}) (bson.Raw, error) 
 	}
 	return ct.changeStream.ResumeToken(), nil
 }
-

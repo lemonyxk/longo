@@ -1,4 +1,4 @@
-module github.com/Lemo-yxk/mongo
+module github.com/Lemo-yxk/lemongo
 
 go 1.13
 
