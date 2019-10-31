@@ -8,7 +8,7 @@
 * @create: 2019-10-25 15:55
 **/
 
-package lemongo
+package longo
 
 import (
 	"context"

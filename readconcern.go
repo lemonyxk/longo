@@ -8,7 +8,7 @@
 * @create: 2019-10-25 21:04
 **/
 
-package lemongo
+package longo
 
 import (
 	"go.mongodb.org/mongo-driver/mongo/readconcern"

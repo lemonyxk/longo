@@ -8,7 +8,7 @@
 * @create: 2019-10-25 21:07
 **/
 
-package lemongo
+package longo
 
 import (
 	"time"

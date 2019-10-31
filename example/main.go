@@ -17,15 +17,15 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 
-	"github.com/Lemo-yxk/lemongo"
+	"github.com/Lemo-yxk/longo"
 )
 
 func main() {
 	var url = "mongodb://root:1354243@127.0.0.1:27017,127.0.0.1:27018,127.0.0.1:27019"
 
-	mgo, _ := lemongo.NewMongoClient().Connect(&lemongo.Config{Url: url})
+	mgo, _ := longo.NewMongoClient().Connect(&longo.Config{Url: url})
 
-	err := mgo.RawClient().Ping(nil, lemongo.ReadPreference.Primary)
+	err := mgo.RawClient().Ping(nil, longo.ReadPreference.Primary)
 	if err != nil {
 		panic(err)
 	}
@@ -42,6 +42,6 @@ func main() {
 	// 	return err
 	// })
 	var t = true
-	a, err := mgo.DB("Test").C("test").Indexes().CreateOne(mongo.IndexModel{Keys: bson.M{"b": -1}, Options: &options.IndexOptions{Background: &t}})
+	a, err := mgo.DB("Test").C("test").Indexes().CreateOne(mongo.IndexModel{Keys: bson.M{"a": -1}, Options: &options.IndexOptions{Background: &t}})
 	log.Println(a, err)
 }
