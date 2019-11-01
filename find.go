@@ -48,3 +48,9 @@ func (f *Find) All(result interface{}) error {
 	var res = &MultiResult{cursor: cursor, err: err}
 	return res.All(result)
 }
+
+func (f *Find) One(result interface{}) error {
+	cursor, err := f.collection.Find(context.Background(), f.filter, &f.findOptions)
+	var res = &MultiResult{cursor: cursor, err: err}
+	return res.One(result)
+}

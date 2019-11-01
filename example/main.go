@@ -11,14 +11,17 @@
 package main
 
 import (
+	"encoding/json"
 	"log"
 
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 
 	"github.com/Lemo-yxk/longo"
 )
+
+type Example struct {
+	Hello string `json:"hello"`
+}
 
 func main() {
 	var url = "mongodb://root:1354243@127.0.0.1:27017,127.0.0.1:27018,127.0.0.1:27019"
@@ -41,7 +44,16 @@ func main() {
 	//
 	// 	return err
 	// })
-	var t = true
-	a, err := mgo.DB("Test").C("test").Indexes().CreateOne(mongo.IndexModel{Keys: bson.M{"a": -1}, Options: &options.IndexOptions{Background: &t}})
-	log.Println(a, err)
+
+	var result bson.M
+
+	_ = mgo.DB("Test").C("test").Find(bson.M{}).One(&result)
+
+	bytes, _ := json.Marshal(result)
+
+	var e Example
+
+	_ = json.Unmarshal(bytes, &e)
+
+	log.Println(e)
 }

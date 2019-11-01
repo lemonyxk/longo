@@ -31,3 +31,11 @@ func (ag *MultiResult) All(result interface{}) error {
 	// }
 	return ag.cursor.All(context.Background(), result)
 }
+
+func (ag *MultiResult) One(result interface{}) error {
+	if ag.err != nil {
+		return ag.err
+	}
+	ag.cursor.Next(context.Background())
+	return ag.cursor.Decode(result)
+}
