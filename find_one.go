@@ -38,7 +38,7 @@ func (f *FindOne) Projection(projection interface{}) *FindOne {
 	return f
 }
 
-func (f *FindOne) All(result interface{}) error {
+func (f *FindOne) Get(result interface{}) error {
 	var res = &SingleResult{singleResult: f.collection.FindOne(context.Background(), f.filter, &f.findOptions)}
 	return res.Get(result)
 }
