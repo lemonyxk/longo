@@ -50,10 +50,10 @@ func (c *Client) init(config *Config) {
 			c.config.Hosts = []string{"127.0.0.1:27017"}
 		}
 		var hostsString = strings.Join(c.config.Hosts, ",")
-		if c.config.User == "" || c.config.Auth == "" {
+		if c.config.User == "" || c.config.Pass == "" {
 			c.config.Url = "mongodb://" + hostsString
 		} else {
-			c.config.Url = "mongodb://" + c.config.User + ":" + c.config.Auth + "@" + hostsString
+			c.config.Url = "mongodb://" + c.config.User + ":" + c.config.Pass + "@" + hostsString
 		}
 	}
 

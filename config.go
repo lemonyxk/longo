@@ -18,7 +18,7 @@ import (
 
 type Config struct {
 	User           string
-	Auth           string
+	Pass           string
 	Hosts          []string
 	Url            string
 	ReadPreference *readpref.ReadPref
