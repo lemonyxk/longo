@@ -16,7 +16,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/writeconcern"
 )
 
-func NewMongoClient() *Client {
+func NewClient() *Client {
 	return &Client{}
 }
 

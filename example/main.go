@@ -23,7 +23,7 @@ import (
 func main() {
 	var url = "mongodb://root:1354243@127.0.0.1:27017,127.0.0.1:27018,127.0.0.1:27019"
 
-	mgo, _ := longo.NewMongoClient().Connect(&longo.Config{Url: url})
+	mgo, _ := longo.NewClient().Connect(&longo.Config{Url: url})
 
 	err := mgo.RawClient().Ping(nil, longo.ReadPreference.Primary)
 	if err != nil {
