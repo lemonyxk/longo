@@ -13,7 +13,6 @@ package longo
 import (
 	"go.mongodb.org/mongo-driver/mongo/readconcern"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
-	"go.mongodb.org/mongo-driver/mongo/writeconcern"
 )
 
 type Config struct {
@@ -23,5 +22,5 @@ type Config struct {
 	Url            string
 	ReadPreference *readpref.ReadPref
 	ReadConcern    *readconcern.ReadConcern
-	WriteConcern   *writeconcern.WriteConcern
+	WriteConcern   *WriteConcern
 }

@@ -32,7 +32,7 @@ func (c *Client) SetReadConcern(readConcern string) {
 }
 
 func (c *Client) SetWriteConcern(writeConcern WriteConcern) {
-	c.config.WriteConcern = NewWriteConcern(writeConcern)
+	c.config.WriteConcern = &writeConcern
 }
 
 func (c *Client) SetUrl(url string) {
@@ -66,7 +66,7 @@ func (c *Client) init(config *Config) {
 	}
 
 	if c.config.WriteConcern == nil {
-		c.config.WriteConcern = NewWriteConcern(WriteConcern{W: 1, J: false, Wtimeout: 3 * time.Second})
+		c.config.WriteConcern = &WriteConcern{W: 1, J: false, Wtimeout: 3 * time.Second}
 	}
 }
 
@@ -79,9 +79,9 @@ func (c *Client) Connect(config *Config) (*Mgo, error) {
 	c.init(config)
 
 	client, err := mongo.Connect(context.Background(), options.Client().ApplyURI(c.config.Url), &options.ClientOptions{
-		ReadPreference: c.config.ReadPreference, // default is Primary
-		ReadConcern:    c.config.ReadConcern,    // default is local
-		WriteConcern:   c.config.WriteConcern,   // default is w:1 j:false wTimeout:when w > 1
+		ReadPreference: c.config.ReadPreference,                 // default is Primary
+		ReadConcern:    c.config.ReadConcern,                    // default is local
+		WriteConcern:   NewWriteConcern(*c.config.WriteConcern), // default is w:1 j:false wTimeout:when w > 1
 	})
 
 	if err != nil {
