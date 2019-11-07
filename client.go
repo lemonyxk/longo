@@ -35,6 +35,10 @@ func (c *Client) SetWriteConcern(writeConcern WriteConcern) {
 	c.config.WriteConcern = &writeConcern
 }
 
+func (c *Client) SetConnectTimeout(connectTimeout time.Duration) {
+	c.config.ConnectTimeout = connectTimeout
+}
+
 func (c *Client) SetUrl(url string) {
 	c.config.Url = url
 }
@@ -68,6 +72,10 @@ func (c *Client) init(config *Config) {
 	if c.config.WriteConcern == nil {
 		c.config.WriteConcern = &WriteConcern{W: 1, J: false, Wtimeout: 3 * time.Second}
 	}
+
+	if c.config.ConnectTimeout == 0 {
+		c.config.ConnectTimeout = 3 * time.Second
+	}
 }
 
 func (c *Client) Connect(config *Config) (*Mgo, error) {
@@ -79,9 +87,12 @@ func (c *Client) Connect(config *Config) (*Mgo, error) {
 	c.init(config)
 
 	client, err := mongo.Connect(context.Background(), options.Client().ApplyURI(c.config.Url), &options.ClientOptions{
-		ReadPreference: c.config.ReadPreference,                 // default is Primary
-		ReadConcern:    c.config.ReadConcern,                    // default is local
-		WriteConcern:   NewWriteConcern(*c.config.WriteConcern), // default is w:1 j:false wTimeout:when w > 1
+		ReadPreference:         c.config.ReadPreference,                 // default is Primary
+		ReadConcern:            c.config.ReadConcern,                    // default is local
+		WriteConcern:           NewWriteConcern(*c.config.WriteConcern), // default is w:1 j:false wTimeout:when w > 1
+		ConnectTimeout:         &c.config.ConnectTimeout,
+		SocketTimeout:          &c.config.ConnectTimeout,
+		ServerSelectionTimeout: &c.config.ConnectTimeout,
 	})
 
 	if err != nil {

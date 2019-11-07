@@ -13,6 +13,7 @@ package longo
 import (
 	"go.mongodb.org/mongo-driver/mongo/readconcern"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
+	"time"
 )
 
 type Config struct {
@@ -23,4 +24,5 @@ type Config struct {
 	ReadPreference *readpref.ReadPref
 	ReadConcern    *readconcern.ReadConcern
 	WriteConcern   *WriteConcern
+	ConnectTimeout time.Duration
 }
