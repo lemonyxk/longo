@@ -18,9 +18,10 @@ import (
 )
 
 type Find struct {
-	collection  *mongo.Collection
-	findOptions options.FindOptions
-	filter      interface{}
+	collection     *mongo.Collection
+	findOptions    options.FindOptions
+	filter         interface{}
+	sessionContext context.Context
 }
 
 func (f *Find) Sort(sort interface{}) *Find {
@@ -44,13 +45,13 @@ func (f *Find) Projection(projection interface{}) *Find {
 }
 
 func (f *Find) All(result interface{}) error {
-	cursor, err := f.collection.Find(context.Background(), f.filter, &f.findOptions)
+	cursor, err := f.collection.Find(f.sessionContext, f.filter, &f.findOptions)
 	var res = &MultiResult{cursor: cursor, err: err}
 	return res.All(result)
 }
 
 func (f *Find) One(result interface{}) error {
-	cursor, err := f.collection.Find(context.Background(), f.filter, &f.findOptions)
+	cursor, err := f.collection.Find(f.sessionContext, f.filter, &f.findOptions)
 	var res = &MultiResult{cursor: cursor, err: err}
 	return res.One(result)
 }

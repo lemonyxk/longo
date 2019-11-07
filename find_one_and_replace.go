@@ -22,6 +22,7 @@ type FindOneAndReplace struct {
 	findOneAndReplaceOptions options.FindOneAndReplaceOptions
 	filter                   interface{}
 	replacement              interface{}
+	sessionContext           context.Context
 }
 
 func (f *FindOneAndReplace) Sort(sort interface{}) *FindOneAndReplace {
@@ -47,6 +48,6 @@ func (f *FindOneAndReplace) ReturnDocument() *FindOneAndReplace {
 }
 
 func (f *FindOneAndReplace) Get(result interface{}) error {
-	var res = &SingleResult{singleResult: f.collection.FindOneAndReplace(context.Background(), f.filter, f.replacement, &f.findOneAndReplaceOptions)}
+	var res = &SingleResult{singleResult: f.collection.FindOneAndReplace(f.sessionContext, f.filter, f.replacement, &f.findOneAndReplaceOptions)}
 	return res.Get(result)
 }
