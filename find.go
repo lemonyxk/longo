@@ -47,11 +47,11 @@ func (f *Find) Projection(projection interface{}) *Find {
 func (f *Find) All(result interface{}) error {
 	cursor, err := f.collection.Find(f.sessionContext, f.filter, &f.findOptions)
 	var res = &MultiResult{cursor: cursor, err: err}
-	return res.All(result)
+	return res.All(f.sessionContext, result)
 }
 
 func (f *Find) One(result interface{}) error {
 	cursor, err := f.collection.Find(f.sessionContext, f.filter, &f.findOptions)
 	var res = &MultiResult{cursor: cursor, err: err}
-	return res.One(result)
+	return res.One(f.sessionContext, result)
 }

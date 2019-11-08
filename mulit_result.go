@@ -21,7 +21,7 @@ type MultiResult struct {
 	err    error
 }
 
-func (ag *MultiResult) All(result interface{}) error {
+func (ag *MultiResult) All(sessionContext context.Context, result interface{}) error {
 	if ag.err != nil {
 		return ag.err
 	}
@@ -29,13 +29,13 @@ func (ag *MultiResult) All(result interface{}) error {
 	// if refResult.Kind() != reflect.Ptr || refResult.Elem().Kind() != reflect.Slice {
 	// 	return errors.New("result argument must be a slice address")
 	// }
-	return ag.cursor.All(context.Background(), result)
+	return ag.cursor.All(sessionContext, result)
 }
 
-func (ag *MultiResult) One(result interface{}) error {
+func (ag *MultiResult) One(sessionContext context.Context, result interface{}) error {
 	if ag.err != nil {
 		return ag.err
 	}
-	ag.cursor.Next(context.Background())
+	ag.cursor.Next(sessionContext)
 	return ag.cursor.Decode(result)
 }
