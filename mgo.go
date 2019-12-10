@@ -42,7 +42,11 @@ func (m *Mgo) Transaction(fn func(sessionContext mongo.SessionContext) error, op
 		}
 		err = fn(sessionContext)
 		if err != nil {
-			return sessionContext.AbortTransaction(sessionContext)
+			var e = sessionContext.AbortTransaction(sessionContext)
+			if e != nil {
+				return e
+			}
+			return err
 		}
 		return sessionContext.CommitTransaction(sessionContext)
 	})
