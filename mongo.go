@@ -78,13 +78,12 @@ func (q *Query) Indexes() *IndexView {
 
 // TRANSACTION
 
-func (q *Query) AggregateWithSession(sessionContext context.Context, pipeline interface{}, opts ...*options.AggregateOptions) *MultiResult {
-	cursor, err := q.client.Database(q.db).Collection(q.collection).Aggregate(sessionContext, pipeline, opts...)
-	return &MultiResult{cursor: cursor, err: err}
+func (q *Query) AggregateWithSession(sessionContext context.Context, pipeline interface{}) *Aggregate {
+	return &Aggregate{collection: q.client.Database(q.db).Collection(q.collection), pipeline: pipeline, sessionContext: sessionContext}
 }
 
-func (q *Query) Aggregate(pipeline interface{}, opts ...*options.AggregateOptions) *MultiResult {
-	return q.AggregateWithSession(context.Background(), pipeline, opts...)
+func (q *Query) Aggregate(pipeline interface{}) *Aggregate {
+	return q.AggregateWithSession(context.Background(), pipeline)
 }
 
 func (q *Query) FindWithSession(sessionContext context.Context, filter interface{}) *Find {
