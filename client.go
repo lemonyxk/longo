@@ -15,6 +15,7 @@ import (
 	"strings"
 	"time"
 
+	"go.mongodb.org/mongo-driver/bson/bsoncodec"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -25,6 +26,10 @@ type Client struct {
 
 func (c *Client) SetReadPreference(readPreference string) {
 	c.config.ReadPreference = NewReadPreference(readPreference)
+}
+
+func (c *Client) SetRegister(register *bsoncodec.RegistryBuilder) {
+	c.config.Register = register
 }
 
 func (c *Client) SetReadConcern(readConcern string) {
@@ -86,7 +91,13 @@ func (c *Client) Connect(config *Config) (*Mgo, error) {
 
 	c.init(config)
 
-	client, err := mongo.Connect(context.Background(), options.Client().ApplyURI(c.config.Url), &options.ClientOptions{
+	var option = options.Client().ApplyURI(c.config.Url)
+
+	if config.Register != nil {
+		option.SetRegistry(config.Register.Build())
+	}
+
+	client, err := mongo.Connect(context.Background(), option, &options.ClientOptions{
 		ReadPreference:         c.config.ReadPreference,                 // default is Primary
 		ReadConcern:            c.config.ReadConcern,                    // default is local
 		WriteConcern:           NewWriteConcern(*c.config.WriteConcern), // default is w:1 j:false wTimeout:when w > 1
