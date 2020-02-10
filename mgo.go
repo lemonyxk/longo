@@ -34,19 +34,20 @@ func (m *Mgo) DB(db string) *DB {
 	return &DB{client: m.client, db: db, config: m.config}
 }
 
-func (m *Mgo) Transaction(fn func(sessionContext mongo.SessionContext) error, opts ...*options.TransactionOptions) {
-	_ = m.client.UseSession(context.Background(), func(sessionContext mongo.SessionContext) error {
-
+func (m *Mgo) Transaction(fn func(sessionContext mongo.SessionContext) error, opts ...*options.TransactionOptions) error {
+	return m.client.UseSession(context.Background(), func(sessionContext mongo.SessionContext) error {
 		var err = sessionContext.StartTransaction(opts...)
 		if err != nil {
 			return err
 		}
-
 		err = fn(sessionContext)
 		if err != nil {
-			return sessionContext.AbortTransaction(sessionContext)
+			var e = sessionContext.AbortTransaction(sessionContext)
+			if e != nil {
+				return e
+			}
+			return err
 		}
-
 		return sessionContext.CommitTransaction(sessionContext)
 	})
 }

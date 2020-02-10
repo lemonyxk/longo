@@ -11,6 +11,7 @@
 package longo
 
 import (
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/readconcern"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 	"go.mongodb.org/mongo-driver/mongo/writeconcern"
@@ -18,6 +19,10 @@ import (
 
 func NewClient() *Client {
 	return &Client{}
+}
+
+func NewObjectID() primitive.ObjectID {
+	return primitive.NewObjectID()
 }
 
 func NewReadPreference(readPreference string) *readpref.ReadPref {

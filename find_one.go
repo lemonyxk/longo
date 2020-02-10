@@ -18,9 +18,10 @@ import (
 )
 
 type FindOne struct {
-	collection  *mongo.Collection
-	findOptions options.FindOneOptions
-	filter      interface{}
+	collection     *mongo.Collection
+	findOptions    options.FindOneOptions
+	filter         interface{}
+	sessionContext context.Context
 }
 
 func (f *FindOne) Sort(sort interface{}) *FindOne {
@@ -39,6 +40,6 @@ func (f *FindOne) Projection(projection interface{}) *FindOne {
 }
 
 func (f *FindOne) Get(result interface{}) error {
-	var res = &SingleResult{singleResult: f.collection.FindOne(context.Background(), f.filter, &f.findOptions)}
+	var res = &SingleResult{singleResult: f.collection.FindOne(f.sessionContext, f.filter, &f.findOptions)}
 	return res.Get(result)
 }

@@ -11,9 +11,11 @@
 package longo
 
 import (
+	"time"
+
+	"go.mongodb.org/mongo-driver/bson/bsoncodec"
 	"go.mongodb.org/mongo-driver/mongo/readconcern"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
-	"time"
 )
 
 type Config struct {
@@ -25,4 +27,5 @@ type Config struct {
 	ReadConcern    *readconcern.ReadConcern
 	WriteConcern   *WriteConcern
 	ConnectTimeout time.Duration
+	Register       *bsoncodec.RegistryBuilder
 }

@@ -22,6 +22,7 @@ type FindOneAndUpdate struct {
 	findOneAndUpdateOptions options.FindOneAndUpdateOptions
 	filter                  interface{}
 	update                  interface{}
+	sessionContext          context.Context
 }
 
 func (f *FindOneAndUpdate) Sort(sort interface{}) *FindOneAndUpdate {
@@ -47,6 +48,6 @@ func (f *FindOneAndUpdate) ReturnDocument() *FindOneAndUpdate {
 }
 
 func (f *FindOneAndUpdate) Get(result interface{}) error {
-	var res = &SingleResult{singleResult: f.collection.FindOneAndUpdate(context.Background(), f.filter, f.update, &f.findOneAndUpdateOptions)}
+	var res = &SingleResult{singleResult: f.collection.FindOneAndUpdate(f.sessionContext, f.filter, f.update, &f.findOneAndUpdateOptions)}
 	return res.Get(result)
 }

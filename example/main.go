@@ -14,13 +14,25 @@ import (
 	"encoding/json"
 	"log"
 
-	"go.mongodb.org/mongo-driver/bson"
-
 	"github.com/Lemo-yxk/longo"
 )
 
 type Example struct {
 	Hello string `json:"hello"`
+}
+
+type Animal struct {
+	Name string `json:"name" bson:"name"`
+	Eye
+	Hand
+}
+
+type Hand struct {
+	Size int `json:"size" bson:"size"`
+}
+
+type Eye struct {
+	Color string `json:"color" bson:"color"`
 }
 
 func main() {
@@ -45,15 +57,11 @@ func main() {
 	// 	return err
 	// })
 
-	var result bson.M
+	var animal = Animal{}
 
-	_ = mgo.DB("Test").C("test").Find(bson.M{}).One(&result)
+	b, _ := json.Marshal(animal)
+	log.Println(string(b))
 
-	bytes, _ := json.Marshal(result)
+	_, _ = mgo.DB("Test").C("test").InsertOne(animal)
 
-	var e Example
-
-	_ = json.Unmarshal(bytes, &e)
-
-	log.Println(e)
 }
