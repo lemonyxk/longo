@@ -37,7 +37,11 @@ func NewReadConcern(readConcern string) *readconcern.ReadConcern {
 
 func NewWriteConcern(writeConcern WriteConcern) *writeconcern.WriteConcern {
 	var opts []writeconcern.Option
-	opts = append(opts, writeconcern.W(writeConcern.W))
+	if writeConcern.W == -1 {
+		opts = append(opts, writeconcern.WMajority())
+	} else {
+		opts = append(opts, writeconcern.W(writeConcern.W))
+	}
 	opts = append(opts, writeconcern.J(writeConcern.J))
 	opts = append(opts, writeconcern.WTimeout(writeConcern.Wtimeout))
 	return writeconcern.New(opts...)
