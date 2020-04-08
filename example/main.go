@@ -11,8 +11,9 @@
 package main
 
 import (
-	"encoding/json"
 	"log"
+
+	"go.mongodb.org/mongo-driver/bson"
 
 	"github.com/Lemo-yxk/longo"
 )
@@ -23,8 +24,6 @@ type Example struct {
 
 type Animal struct {
 	Name string `json:"name" bson:"name"`
-	Eye
-	Hand
 }
 
 type Hand struct {
@@ -57,11 +56,11 @@ func main() {
 	// 	return err
 	// })
 
-	var animal = Animal{}
+	var animal Animal
 
-	b, _ := json.Marshal(animal)
-	log.Println(string(b))
+	var b interface{} = &animal
 
-	_, _ = mgo.DB("Test").C("test").InsertOne(animal)
+	log.Println(mgo.DB("Test").C("test").Find(bson.M{}).One(b))
 
+	log.Println(b)
 }
