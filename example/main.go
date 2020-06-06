@@ -11,10 +11,6 @@
 package main
 
 import (
-	"log"
-
-	"go.mongodb.org/mongo-driver/bson"
-
 	"github.com/Lemo-yxk/longo"
 )
 
@@ -24,6 +20,7 @@ type Example struct {
 
 type Animal struct {
 	Name string `json:"name" bson:"name"`
+	Addr string `json:"addr" bson:"addr"`
 }
 
 type Hand struct {
@@ -56,11 +53,14 @@ func main() {
 	// 	return err
 	// })
 
-	var animal Animal
+	// var res bson.M
+	// err = mgo.DB("Test").C("test").FindOneAndUpdate(bson.M{"name": "a"}, bson.M{"$set": bson.M{"name": "a111123aaaa"}}).ReturnDocument().Get(&res)
+	// log.Println(err)
+	// log.Println(res)
 
-	var b interface{} = &animal
-
-	log.Println(mgo.DB("Test").C("test").Find(bson.M{}).One(b))
-
-	log.Println(b)
+	// animal.Addr = "hello"
+	//
+	// log.Println(mgo.DB("Test").C("test").Find(bson.M{}).One(&animal))
+	//
+	// log.Println(animal)
 }
