@@ -11,7 +11,7 @@
 package main
 
 import (
-	"github.com/Lemo-yxk/longo"
+	"github.com/lemoyxk/longo"
 )
 
 type Example struct {

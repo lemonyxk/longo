@@ -1,5 +1,5 @@
-module github.com/Lemo-yxk/longo
+module github.com/lemoyxk/longo
 
 go 1.14
 
-require go.mongodb.org/mongo-driver v1.3.4
+require go.mongodb.org/mongo-driver v1.3.5
