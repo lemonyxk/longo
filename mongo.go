@@ -41,6 +41,12 @@ type Query struct {
 	config     Config
 	db         string
 	collection string
+	ctx        context.Context
+}
+
+func (q *Query) SetContext(ctx context.Context) *Query {
+	q.ctx = ctx
+	return q
 }
 
 func (q *Query) Clone(opts ...*options.CollectionOptions) (*mongo.Collection, error) {
@@ -78,106 +84,54 @@ func (q *Query) Indexes() *IndexView {
 
 // TRANSACTION
 
-func (q *Query) AggregateWithSession(sessionContext context.Context, pipeline interface{}) *Aggregate {
-	return &Aggregate{collection: q.client.Database(q.db).Collection(q.collection), pipeline: pipeline, sessionContext: sessionContext}
-}
-
 func (q *Query) Aggregate(pipeline interface{}) *Aggregate {
-	return q.AggregateWithSession(context.Background(), pipeline)
-}
-
-func (q *Query) FindWithSession(sessionContext context.Context, filter interface{}) *Find {
-	return &Find{collection: q.client.Database(q.db).Collection(q.collection), filter: filter, sessionContext: sessionContext}
+	return &Aggregate{collection: q.client.Database(q.db).Collection(q.collection), pipeline: pipeline, sessionContext: q.ctx}
 }
 
 func (q *Query) Find(filter interface{}) *Find {
-	return q.FindWithSession(context.Background(), filter)
-}
-
-func (q *Query) FindOneWithSession(sessionContext context.Context, filter interface{}) *FindOne {
-	return &FindOne{collection: q.client.Database(q.db).Collection(q.collection), filter: filter, sessionContext: sessionContext}
+	return &Find{collection: q.client.Database(q.db).Collection(q.collection), filter: filter, sessionContext: q.ctx}
 }
 
 func (q *Query) FindOne(filter interface{}) *FindOne {
-	return q.FindOneWithSession(context.Background(), filter)
-}
-
-func (q *Query) FindOneAndDeleteWithSession(sessionContext context.Context, filter interface{}) *FindOneAndDelete {
-	return &FindOneAndDelete{collection: q.client.Database(q.db).Collection(q.collection), filter: filter, sessionContext: sessionContext}
+	return &FindOne{collection: q.client.Database(q.db).Collection(q.collection), filter: filter, sessionContext: q.ctx}
 }
 
 func (q *Query) FindOneAndDelete(filter interface{}) *FindOneAndDelete {
-	return q.FindOneAndDeleteWithSession(context.Background(), filter)
-}
-
-func (q *Query) FindOneAndReplaceWithSession(sessionContext context.Context, filter interface{}, replacement interface{}) *FindOneAndReplace {
-	return &FindOneAndReplace{collection: q.client.Database(q.db).Collection(q.collection), filter: filter, replacement: replacement, sessionContext: sessionContext}
+	return &FindOneAndDelete{collection: q.client.Database(q.db).Collection(q.collection), filter: filter, sessionContext: q.ctx}
 }
 
 func (q *Query) FindOneAndReplace(filter interface{}, replacement interface{}) *FindOneAndReplace {
-	return q.FindOneAndReplaceWithSession(context.Background(), filter, replacement)
-}
-
-func (q *Query) FindOneAndUpdateWithSession(sessionContext context.Context, filter interface{}, update interface{}) *FindOneAndUpdate {
-	return &FindOneAndUpdate{collection: q.client.Database(q.db).Collection(q.collection), filter: filter, update: update, sessionContext: sessionContext}
+	return &FindOneAndReplace{collection: q.client.Database(q.db).Collection(q.collection), filter: filter, replacement: replacement, sessionContext: q.ctx}
 }
 
 func (q *Query) FindOneAndUpdate(filter interface{}, update interface{}) *FindOneAndUpdate {
-	return q.FindOneAndUpdateWithSession(context.Background(), filter, update)
-}
-
-func (q *Query) InsertOneWithSession(sessionContext context.Context, document interface{}, opts ...*options.InsertOneOptions) (*mongo.InsertOneResult, error) {
-	return q.client.Database(q.db).Collection(q.collection).InsertOne(sessionContext, document, opts...)
+	return &FindOneAndUpdate{collection: q.client.Database(q.db).Collection(q.collection), filter: filter, update: update, sessionContext: q.ctx}
 }
 
 func (q *Query) InsertOne(document interface{}, opts ...*options.InsertOneOptions) (*mongo.InsertOneResult, error) {
-	return q.InsertOneWithSession(context.Background(), document, opts...)
-}
-
-func (q *Query) InsertManyWithSession(sessionContext context.Context, document []interface{}, opts ...*options.InsertManyOptions) (*mongo.InsertManyResult, error) {
-	return q.client.Database(q.db).Collection(q.collection).InsertMany(sessionContext, document, opts...)
+	return q.client.Database(q.db).Collection(q.collection).InsertOne(q.ctx, document, opts...)
 }
 
 func (q *Query) InsertMany(document []interface{}, opts ...*options.InsertManyOptions) (*mongo.InsertManyResult, error) {
-	return q.InsertManyWithSession(context.Background(), document, opts...)
-}
-
-func (q *Query) DeleteOneWithSession(sessionContext context.Context, filter interface{}, opts ...*options.DeleteOptions) (*mongo.DeleteResult, error) {
-	return q.client.Database(q.db).Collection(q.collection).DeleteOne(sessionContext, filter, opts...)
+	return q.client.Database(q.db).Collection(q.collection).InsertMany(q.ctx, document, opts...)
 }
 
 func (q *Query) DeleteOne(filter interface{}, opts ...*options.DeleteOptions) (*mongo.DeleteResult, error) {
-	return q.DeleteOneWithSession(context.Background(), filter, opts...)
-}
-
-func (q *Query) DeleteManyWithSession(sessionContext context.Context, filter interface{}, opts ...*options.DeleteOptions) (*mongo.DeleteResult, error) {
-	return q.client.Database(q.db).Collection(q.collection).DeleteMany(sessionContext, filter, opts...)
+	return q.client.Database(q.db).Collection(q.collection).DeleteOne(q.ctx, filter, opts...)
 }
 
 func (q *Query) DeleteMany(filter interface{}, opts ...*options.DeleteOptions) (*mongo.DeleteResult, error) {
-	return q.DeleteManyWithSession(context.Background(), filter, opts...)
-}
-
-func (q *Query) UpdateOneWithSession(sessionContext context.Context, filter interface{}, update interface{}, opts ...*options.UpdateOptions) (*mongo.UpdateResult, error) {
-	return q.client.Database(q.db).Collection(q.collection).UpdateOne(sessionContext, filter, update, opts...)
+	return q.client.Database(q.db).Collection(q.collection).DeleteMany(q.ctx, filter, opts...)
 }
 
 func (q *Query) UpdateOne(filter interface{}, update interface{}, opts ...*options.UpdateOptions) (*mongo.UpdateResult, error) {
-	return q.UpdateOneWithSession(context.Background(), filter, update, opts...)
-}
-
-func (q *Query) UpdateManyWithSession(sessionContext context.Context, filter interface{}, update interface{}, opts ...*options.UpdateOptions) (*mongo.UpdateResult, error) {
-	return q.client.Database(q.db).Collection(q.collection).UpdateMany(sessionContext, filter, update, opts...)
+	return q.client.Database(q.db).Collection(q.collection).UpdateOne(q.ctx, filter, update, opts...)
 }
 
 func (q *Query) UpdateMany(filter interface{}, update interface{}, opts ...*options.UpdateOptions) (*mongo.UpdateResult, error) {
-	return q.UpdateManyWithSession(context.Background(), filter, update, opts...)
-}
-
-func (q *Query) ReplaceOneWithSession(sessionContext context.Context, filter interface{}, update interface{}, opts ...*options.ReplaceOptions) (*mongo.UpdateResult, error) {
-	return q.client.Database(q.db).Collection(q.collection).ReplaceOne(sessionContext, filter, update, opts...)
+	return q.client.Database(q.db).Collection(q.collection).UpdateMany(q.ctx, filter, update, opts...)
 }
 
 func (q *Query) ReplaceOne(filter interface{}, update interface{}, opts ...*options.ReplaceOptions) (*mongo.UpdateResult, error) {
-	return q.ReplaceOneWithSession(context.Background(), filter, update, opts...)
+	return q.client.Database(q.db).Collection(q.collection).ReplaceOne(q.ctx, filter, update, opts...)
 }
