@@ -55,7 +55,7 @@ func main() {
 		go func() {
 			// Transaction can not create collection, so you have to create it before you run.
 			// maxTransactionLockRequestTimeoutMillis 5ms
-			var err = mgo.Transaction(func(sessionContext mongo.SessionContext) error {
+			var err = mgo.Transaction(func(handler *longo.Mgo, sessionContext mongo.SessionContext) error {
 
 				var err error
 
@@ -76,6 +76,8 @@ func main() {
 				if result.Money != result1.Money {
 					panic("error")
 				}
+
+				log.Println(mgo == handler)
 
 				return err
 			})
