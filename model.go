@@ -12,7 +12,6 @@ package longo
 
 import (
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
 func NewModel(db, collection string) *model {
@@ -89,19 +88,19 @@ func (p *model) Count(find interface{}) (int64, error) {
 	return p.handler.DB(p.db).C(p.collection).CountDocuments(find)
 }
 
-func (p *model) Set(filter interface{}, update interface{}) (*mongo.UpdateResult, error) {
+func (p *model) Set(filter interface{}, update interface{}) *UpdateResult {
 	return p.handler.DB(p.db).C(p.collection).UpdateMany(filter, bson.M{"$set": update})
 }
 
-func (p *model) Update(filter interface{}, update interface{}) (*mongo.UpdateResult, error) {
+func (p *model) Update(filter interface{}, update interface{}) *UpdateResult {
 	return p.handler.DB(p.db).C(p.collection).UpdateMany(filter, update)
 }
 
-func (p *model) Insert(document ...interface{}) (*mongo.InsertManyResult, error) {
+func (p *model) Insert(document ...interface{}) *InsertManyResult {
 	return p.handler.DB(p.db).C(p.collection).InsertMany(document)
 }
 
-func (p *model) Delete(filter interface{}) (*mongo.DeleteResult, error) {
+func (p *model) Delete(filter interface{}) *DeleteResult {
 	return p.handler.DB(p.db).C(p.collection).DeleteMany(filter)
 }
 

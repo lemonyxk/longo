@@ -65,7 +65,7 @@ func NewNUll() *bsoncodec.RegistryBuilder {
 		if err != nil {
 			panic(err)
 		}
-		rb.RegisterDecoder(t, &NullDecoder{defDecoder, reflect.Zero(t)})
+		rb.RegisterTypeDecoder(t, &NullDecoder{defDecoder, reflect.Zero(t)})
 	}
 
 	return rb
