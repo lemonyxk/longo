@@ -63,15 +63,15 @@ func main() {
 					Money int `bson:"money"`
 				}
 
-				var test = mgo.DB("Test").C("test").SetContext(sessionContext)
-				err = test.FindOneAndUpdate(bson.M{"id": 1}, bson.M{"$inc": bson.M{"money": 1}}).ReturnDocument().Get(&result)
+				var test = mgo.DB("Test").C("test")
+				err = test.FindOneAndUpdate(bson.M{"id": 1}, bson.M{"$inc": bson.M{"money": 1}}).Context(sessionContext).ReturnDocument().Get(&result)
 
 				var result1 struct {
 					Money int `bson:"money"`
 				}
 
-				var test1 = mgo.DB("Test").C("test1").SetContext(sessionContext)
-				err = test1.FindOneAndUpdate(bson.M{"id": 1}, bson.M{"$inc": bson.M{"money": 1}}).ReturnDocument().Get(&result1)
+				var test1 = mgo.DB("Test").C("test1")
+				err = test1.FindOneAndUpdate(bson.M{"id": 1}, bson.M{"$inc": bson.M{"money": 1}}).Context(sessionContext).ReturnDocument().Get(&result1)
 
 				if result.Money != result1.Money {
 					panic("error")

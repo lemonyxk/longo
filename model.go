@@ -88,19 +88,19 @@ func (p *model) Count(find interface{}) (int64, error) {
 	return p.handler.DB(p.db).C(p.collection).CountDocuments(find)
 }
 
-func (p *model) Set(filter interface{}, update interface{}) *UpdateResult {
+func (p *model) Set(filter interface{}, update interface{}) *UpdateMany {
 	return p.handler.DB(p.db).C(p.collection).UpdateMany(filter, bson.M{"$set": update})
 }
 
-func (p *model) Update(filter interface{}, update interface{}) *UpdateResult {
+func (p *model) Update(filter interface{}, update interface{}) *UpdateMany {
 	return p.handler.DB(p.db).C(p.collection).UpdateMany(filter, update)
 }
 
-func (p *model) Insert(document ...interface{}) *InsertManyResult {
+func (p *model) Insert(document ...interface{}) *InsertMany {
 	return p.handler.DB(p.db).C(p.collection).InsertMany(document)
 }
 
-func (p *model) Delete(filter interface{}) *DeleteResult {
+func (p *model) Delete(filter interface{}) *DeleteMany {
 	return p.handler.DB(p.db).C(p.collection).DeleteMany(filter)
 }
 

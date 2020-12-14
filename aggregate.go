@@ -18,20 +18,34 @@ import (
 )
 
 type Aggregate struct {
-	collection       *mongo.Collection
-	aggregateOptions options.AggregateOptions
-	pipeline         interface{}
-	sessionContext   context.Context
+	collection     *mongo.Collection
+	option         *options.AggregateOptions
+	pipeline       interface{}
+	sessionContext context.Context
+}
+
+func NewAggregate(collection *mongo.Collection, pipeline interface{}) *Aggregate {
+	return &Aggregate{collection: collection, option: &options.AggregateOptions{}, pipeline: pipeline}
+}
+
+func (f *Aggregate) Context(ctx context.Context) *Aggregate {
+	f.sessionContext = ctx
+	return f
+}
+
+func (f *Aggregate) Option(opt *options.AggregateOptions) *Aggregate {
+	f.option = opt
+	return f
 }
 
 func (f *Aggregate) All(result interface{}) error {
-	cursor, err := f.collection.Aggregate(f.sessionContext, f.pipeline, &f.aggregateOptions)
+	cursor, err := f.collection.Aggregate(f.sessionContext, f.pipeline, f.option)
 	var res = &MultiResult{cursor: cursor, err: err}
 	return res.All(f.sessionContext, result)
 }
 
 func (f *Aggregate) One(result interface{}) error {
-	cursor, err := f.collection.Aggregate(f.sessionContext, f.pipeline, &f.aggregateOptions)
+	cursor, err := f.collection.Aggregate(f.sessionContext, f.pipeline, f.option)
 	var res = &MultiResult{cursor: cursor, err: err}
 	return res.One(f.sessionContext, result)
 }

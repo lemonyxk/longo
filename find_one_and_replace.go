@@ -19,10 +19,14 @@ import (
 
 type FindOneAndReplace struct {
 	collection               *mongo.Collection
-	findOneAndReplaceOptions options.FindOneAndReplaceOptions
+	findOneAndReplaceOptions *options.FindOneAndReplaceOptions
 	filter                   interface{}
 	replacement              interface{}
 	sessionContext           context.Context
+}
+
+func NewFindOneAndReplace(collection *mongo.Collection, filter interface{}, replacement interface{}) *FindOneAndReplace {
+	return &FindOneAndReplace{collection: collection, findOneAndReplaceOptions: &options.FindOneAndReplaceOptions{}, filter: filter, replacement: replacement}
 }
 
 func (f *FindOneAndReplace) Sort(sort interface{}) *FindOneAndReplace {
@@ -47,7 +51,17 @@ func (f *FindOneAndReplace) ReturnDocument() *FindOneAndReplace {
 	return f
 }
 
+func (f *FindOneAndReplace) Context(ctx context.Context) *FindOneAndReplace {
+	f.sessionContext = ctx
+	return f
+}
+
+func (f *FindOneAndReplace) Option(opt *options.FindOneAndReplaceOptions) *FindOneAndReplace {
+	f.findOneAndReplaceOptions = opt
+	return f
+}
+
 func (f *FindOneAndReplace) Get(result interface{}) error {
-	var res = &SingleResult{singleResult: f.collection.FindOneAndReplace(f.sessionContext, f.filter, f.replacement, &f.findOneAndReplaceOptions)}
+	var res = &SingleResult{singleResult: f.collection.FindOneAndReplace(f.sessionContext, f.filter, f.replacement, f.findOneAndReplaceOptions)}
 	return res.Get(result)
 }

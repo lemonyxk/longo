@@ -18,36 +18,50 @@ import (
 )
 
 type FindOneAndUpdate struct {
-	collection              *mongo.Collection
-	findOneAndUpdateOptions options.FindOneAndUpdateOptions
-	filter                  interface{}
-	update                  interface{}
-	sessionContext          context.Context
+	collection     *mongo.Collection
+	option         *options.FindOneAndUpdateOptions
+	filter         interface{}
+	update         interface{}
+	sessionContext context.Context
+}
+
+func NewFindOneAndUpdate(collection *mongo.Collection, filter interface{}, update interface{}) *FindOneAndUpdate {
+	return &FindOneAndUpdate{collection: collection, option: &options.FindOneAndUpdateOptions{}, filter: filter, update: update}
 }
 
 func (f *FindOneAndUpdate) Sort(sort interface{}) *FindOneAndUpdate {
-	f.findOneAndUpdateOptions.Sort = sort
+	f.option.Sort = sort
 	return f
 }
 
 func (f *FindOneAndUpdate) Projection(projection interface{}) *FindOneAndUpdate {
-	f.findOneAndUpdateOptions.Projection = projection
+	f.option.Projection = projection
 	return f
 }
 
 func (f *FindOneAndUpdate) Upsert() *FindOneAndUpdate {
 	var t = true
-	f.findOneAndUpdateOptions.Upsert = &t
+	f.option.Upsert = &t
 	return f
 }
 
 func (f *FindOneAndUpdate) ReturnDocument() *FindOneAndUpdate {
 	var t = options.After
-	f.findOneAndUpdateOptions.ReturnDocument = &t
+	f.option.ReturnDocument = &t
+	return f
+}
+
+func (f *FindOneAndUpdate) Context(ctx context.Context) *FindOneAndUpdate {
+	f.sessionContext = ctx
+	return f
+}
+
+func (f *FindOneAndUpdate) Option(opt *options.FindOneAndUpdateOptions) *FindOneAndUpdate {
+	f.option = opt
 	return f
 }
 
 func (f *FindOneAndUpdate) Get(result interface{}) error {
-	var res = &SingleResult{singleResult: f.collection.FindOneAndUpdate(f.sessionContext, f.filter, f.update, &f.findOneAndUpdateOptions)}
+	var res = &SingleResult{singleResult: f.collection.FindOneAndUpdate(f.sessionContext, f.filter, f.update, f.option)}
 	return res.Get(result)
 }
