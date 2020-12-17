@@ -16,106 +16,106 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 )
 
-func NewModel(db, collection string) *model {
-	return &model{
-		db:         db,
-		collection: collection,
+func NewModel(db, collection string) *Model {
+	return &Model{
+		DB:         db,
+		Collection: collection,
 	}
 }
 
-type model struct {
-	handler    *Mgo
-	db         string
-	collection string
-	context    context.Context
+type Model struct {
+	Handler    *Mgo
+	DB         string
+	Collection string
+	Ctx        context.Context
 }
 
-type findResult struct {
-	find *Find
+type FindResult struct {
+	Find *Find
 }
 
-type aggregateResult struct {
-	aggregate *Aggregate
+type AggregateResult struct {
+	Aggregate *Aggregate
 }
 
-func (p *aggregateResult) One(res interface{}) error {
-	return p.aggregate.One(res)
+func (p *AggregateResult) One(res interface{}) error {
+	return p.Aggregate.One(res)
 }
 
-func (p *aggregateResult) All(res interface{}) error {
-	return p.aggregate.All(res)
+func (p *AggregateResult) All(res interface{}) error {
+	return p.Aggregate.All(res)
 }
 
-func (p *findResult) Sort(sort interface{}) *findResult {
-	p.find.Sort(sort)
+func (p *FindResult) Sort(sort interface{}) *FindResult {
+	p.Find.Sort(sort)
 	return p
 }
 
-func (p *findResult) Skip(skip int64) *findResult {
-	p.find.Skip(skip)
+func (p *FindResult) Skip(skip int64) *FindResult {
+	p.Find.Skip(skip)
 	return p
 }
 
-func (p *findResult) Limit(limit int64) *findResult {
-	p.find.Limit(limit)
+func (p *FindResult) Limit(limit int64) *FindResult {
+	p.Find.Limit(limit)
 	return p
 }
 
-func (p *findResult) Projection(projection interface{}) *findResult {
-	p.find.Projection(projection)
+func (p *FindResult) Projection(projection interface{}) *FindResult {
+	p.Find.Projection(projection)
 	return p
 }
 
-func (p *findResult) One(res interface{}) error {
-	return p.find.One(res)
+func (p *FindResult) One(res interface{}) error {
+	return p.Find.One(res)
 }
 
-func (p *findResult) All(res interface{}) error {
-	return p.find.All(res)
+func (p *FindResult) All(res interface{}) error {
+	return p.Find.All(res)
 }
 
-func (p *model) SetHandler(handler *Mgo) *model {
-	p.handler = handler
+func (p *Model) SetHandler(handler *Mgo) *Model {
+	p.Handler = handler
 	return p
 }
 
-func (p *model) Query() *Query {
-	return p.handler.DB(p.db).C(p.collection).Context(p.context)
+func (p *Model) Query() *Query {
+	return p.Handler.DB(p.DB).C(p.Collection).Context(p.Ctx)
 }
 
-func (p *model) Context(ctx context.Context) *model {
-	p.context = ctx
+func (p *Model) Context(ctx context.Context) *Model {
+	p.Ctx = ctx
 	return p
 }
 
-func (p *model) Find(find interface{}) *findResult {
-	return &findResult{find: p.handler.DB(p.db).C(p.collection).Find(find).Context(p.context)}
+func (p *Model) Find(find interface{}) *FindResult {
+	return &FindResult{Find: p.Handler.DB(p.DB).C(p.Collection).Find(find).Context(p.Ctx)}
 }
 
-func (p *model) Count(find interface{}) (int64, error) {
-	return p.handler.DB(p.db).C(p.collection).CountDocuments(find)
+func (p *Model) Count(find interface{}) (int64, error) {
+	return p.Handler.DB(p.DB).C(p.Collection).CountDocuments(find)
 }
 
-func (p *model) Set(filter interface{}, update interface{}) *UpdateMany {
-	return p.handler.DB(p.db).C(p.collection).UpdateMany(filter, bson.M{"$set": update}).Context(p.context)
+func (p *Model) Set(filter interface{}, update interface{}) *UpdateMany {
+	return p.Handler.DB(p.DB).C(p.Collection).UpdateMany(filter, bson.M{"$set": update}).Context(p.Ctx)
 }
 
-func (p *model) Update(filter interface{}, update interface{}) *UpdateMany {
-	return p.handler.DB(p.db).C(p.collection).UpdateMany(filter, update).Context(p.context)
+func (p *Model) Update(filter interface{}, update interface{}) *UpdateMany {
+	return p.Handler.DB(p.DB).C(p.Collection).UpdateMany(filter, update).Context(p.Ctx)
 }
 
-func (p *model) Insert(document ...interface{}) *InsertMany {
-	return p.handler.DB(p.db).C(p.collection).InsertMany(document).Context(p.context)
+func (p *Model) Insert(document ...interface{}) *InsertMany {
+	return p.Handler.DB(p.DB).C(p.Collection).InsertMany(document).Context(p.Ctx)
 }
 
-func (p *model) Delete(filter interface{}) *DeleteMany {
-	return p.handler.DB(p.db).C(p.collection).DeleteMany(filter).Context(p.context)
+func (p *Model) Delete(filter interface{}) *DeleteMany {
+	return p.Handler.DB(p.DB).C(p.Collection).DeleteMany(filter).Context(p.Ctx)
 }
 
-func (p *model) FindAndModify(filter interface{}, update interface{}) *FindOneAndUpdate {
-	return p.handler.DB(p.db).C(p.collection).FindOneAndUpdate(filter, update).Context(p.context)
+func (p *Model) FindAndModify(filter interface{}, update interface{}) *FindOneAndUpdate {
+	return p.Handler.DB(p.DB).C(p.Collection).FindOneAndUpdate(filter, update).Context(p.Ctx)
 }
 
-func (p *model) Aggregate(pipeline interface{}) *aggregateResult {
-	return &aggregateResult{aggregate: p.handler.DB(p.db).C(p.collection).Aggregate(pipeline).Context(p.context)}
+func (p *Model) Aggregate(pipeline interface{}) *AggregateResult {
+	return &AggregateResult{Aggregate: p.Handler.DB(p.DB).C(p.Collection).Aggregate(pipeline).Context(p.Ctx)}
 }
