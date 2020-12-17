@@ -41,6 +41,7 @@ type Query struct {
 	config     Config
 	db         string
 	collection string
+	context    context.Context
 }
 
 func (q *Query) Clone(opts ...*options.CollectionOptions) (*mongo.Collection, error) {
@@ -78,55 +79,60 @@ func (q *Query) Indexes() *IndexView {
 
 // TRANSACTION
 // QUERY
+func (q *Query) Context(ctx context.Context) *Query {
+	q.context = ctx
+	return q
+}
+
 func (q *Query) Aggregate(pipeline interface{}) *Aggregate {
-	return NewAggregate(q.client.Database(q.db).Collection(q.collection), pipeline)
+	return NewAggregate(q.context, q.client.Database(q.db).Collection(q.collection), pipeline)
 }
 
 func (q *Query) Find(filter interface{}) *Find {
-	return NewFind(q.client.Database(q.db).Collection(q.collection), filter)
+	return NewFind(q.context, q.client.Database(q.db).Collection(q.collection), filter)
 }
 
 func (q *Query) FindOne(filter interface{}) *FindOne {
-	return NewFindOne(q.client.Database(q.db).Collection(q.collection), filter)
+	return NewFindOne(q.context, q.client.Database(q.db).Collection(q.collection), filter)
 }
 
 func (q *Query) FindOneAndDelete(filter interface{}) *FindOneAndDelete {
-	return NewFindOneAndDelete(q.client.Database(q.db).Collection(q.collection), filter)
+	return NewFindOneAndDelete(q.context, q.client.Database(q.db).Collection(q.collection), filter)
 }
 
 func (q *Query) FindOneAndReplace(filter interface{}, replacement interface{}) *FindOneAndReplace {
-	return NewFindOneAndReplace(q.client.Database(q.db).Collection(q.collection), filter, replacement)
+	return NewFindOneAndReplace(q.context, q.client.Database(q.db).Collection(q.collection), filter, replacement)
 }
 
 func (q *Query) FindOneAndUpdate(filter interface{}, update interface{}) *FindOneAndUpdate {
-	return NewFindOneAndUpdate(q.client.Database(q.db).Collection(q.collection), filter, update)
+	return NewFindOneAndUpdate(q.context, q.client.Database(q.db).Collection(q.collection), filter, update)
 }
 
 // INSERT
 func (q *Query) InsertOne(document interface{}) *InsertOne {
-	return NewInsertOne(q.client.Database(q.db).Collection(q.collection), document)
+	return NewInsertOne(q.context, q.client.Database(q.db).Collection(q.collection), document)
 }
 
 func (q *Query) InsertMany(document []interface{}) *InsertMany {
-	return NewInsertMany(q.client.Database(q.db).Collection(q.collection), document)
+	return NewInsertMany(q.context, q.client.Database(q.db).Collection(q.collection), document)
 }
 
 func (q *Query) DeleteOne(filter interface{}) *DeleteOne {
-	return NewDeleteOne(q.client.Database(q.db).Collection(q.collection), filter)
+	return NewDeleteOne(q.context, q.client.Database(q.db).Collection(q.collection), filter)
 }
 
 func (q *Query) DeleteMany(filter interface{}) *DeleteMany {
-	return NewDeleteMany(q.client.Database(q.db).Collection(q.collection), filter)
+	return NewDeleteMany(q.context, q.client.Database(q.db).Collection(q.collection), filter)
 }
 
 func (q *Query) UpdateOne(filter interface{}, update interface{}) *UpdateOne {
-	return NewUpdateOne(q.client.Database(q.db).Collection(q.collection), filter, update)
+	return NewUpdateOne(q.context, q.client.Database(q.db).Collection(q.collection), filter, update)
 }
 
 func (q *Query) UpdateMany(filter interface{}, update interface{}) *UpdateMany {
-	return NewUpdateMany(q.client.Database(q.db).Collection(q.collection), filter, update)
+	return NewUpdateMany(q.context, q.client.Database(q.db).Collection(q.collection), filter, update)
 }
 
 func (q *Query) ReplaceOne(filter interface{}, update interface{}) *ReplaceOne {
-	return NewReplaceOne(q.client.Database(q.db).Collection(q.collection), filter, update)
+	return NewReplaceOne(q.context, q.client.Database(q.db).Collection(q.collection), filter, update)
 }

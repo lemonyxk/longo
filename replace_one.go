@@ -25,8 +25,8 @@ type ReplaceOne struct {
 	sessionContext   context.Context
 }
 
-func NewReplaceOne(collection *mongo.Collection, filter interface{}, update interface{}) *ReplaceOne {
-	return &ReplaceOne{collection: collection, replaceOneOption: &options.ReplaceOptions{}, filter: filter, update: update}
+func NewReplaceOne(ctx context.Context, collection *mongo.Collection, filter interface{}, update interface{}) *ReplaceOne {
+	return &ReplaceOne{collection: collection, replaceOneOption: &options.ReplaceOptions{}, filter: filter, update: update, sessionContext: ctx}
 }
 
 func (i *ReplaceOne) Option(opt *options.ReplaceOptions) *ReplaceOne {

@@ -24,8 +24,8 @@ type InsertMany struct {
 	sessionContext   context.Context
 }
 
-func NewInsertMany(collection *mongo.Collection, document []interface{}) *InsertMany {
-	return &InsertMany{collection: collection, insertManyOption: &options.InsertManyOptions{}, document: document}
+func NewInsertMany(ctx context.Context, collection *mongo.Collection, document []interface{}) *InsertMany {
+	return &InsertMany{collection: collection, insertManyOption: &options.InsertManyOptions{}, document: document, sessionContext: ctx}
 }
 
 func (i *InsertMany) Option(opt *options.InsertManyOptions) *InsertMany {

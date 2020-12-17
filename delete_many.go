@@ -24,8 +24,8 @@ type DeleteMany struct {
 	sessionContext   context.Context
 }
 
-func NewDeleteMany(collection *mongo.Collection, filter interface{}) *DeleteMany {
-	return &DeleteMany{collection: collection, deleteManyOption: &options.DeleteOptions{}, filter: filter}
+func NewDeleteMany(ctx context.Context, collection *mongo.Collection, filter interface{}) *DeleteMany {
+	return &DeleteMany{collection: collection, deleteManyOption: &options.DeleteOptions{}, filter: filter, sessionContext: ctx}
 }
 
 func (i *DeleteMany) Option(opt *options.DeleteOptions) *DeleteMany {

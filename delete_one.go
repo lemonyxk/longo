@@ -24,8 +24,8 @@ type DeleteOne struct {
 	sessionContext  context.Context
 }
 
-func NewDeleteOne(collection *mongo.Collection, filter interface{}) *DeleteOne {
-	return &DeleteOne{collection: collection, deleteOneOption: &options.DeleteOptions{}, filter: filter}
+func NewDeleteOne(ctx context.Context, collection *mongo.Collection, filter interface{}) *DeleteOne {
+	return &DeleteOne{collection: collection, deleteOneOption: &options.DeleteOptions{}, filter: filter, sessionContext: ctx}
 }
 
 func (i *DeleteOne) Option(opt *options.DeleteOptions) *DeleteOne {

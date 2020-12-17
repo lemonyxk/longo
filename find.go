@@ -24,8 +24,8 @@ type Find struct {
 	sessionContext context.Context
 }
 
-func NewFind(collection *mongo.Collection, filter interface{}) *Find {
-	return &Find{collection: collection, option: &options.FindOptions{}, filter: filter}
+func NewFind(ctx context.Context, collection *mongo.Collection, filter interface{}) *Find {
+	return &Find{collection: collection, option: &options.FindOptions{}, filter: filter, sessionContext: ctx}
 }
 
 func (f *Find) Sort(sort interface{}) *Find {

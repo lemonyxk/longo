@@ -25,8 +25,8 @@ type UpdateOne struct {
 	sessionContext  context.Context
 }
 
-func NewUpdateOne(collection *mongo.Collection, filter interface{}, update interface{}) *UpdateOne {
-	return &UpdateOne{collection: collection, updateOneOption: &options.UpdateOptions{}, filter: filter, update: update}
+func NewUpdateOne(ctx context.Context, collection *mongo.Collection, filter interface{}, update interface{}) *UpdateOne {
+	return &UpdateOne{collection: collection, updateOneOption: &options.UpdateOptions{}, filter: filter, update: update, sessionContext: ctx}
 }
 
 func (i *UpdateOne) Option(opt *options.UpdateOptions) *UpdateOne {

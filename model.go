@@ -11,6 +11,8 @@
 package longo
 
 import (
+	"context"
+
 	"go.mongodb.org/mongo-driver/bson"
 )
 
@@ -25,6 +27,7 @@ type model struct {
 	handler    *Mgo
 	db         string
 	collection string
+	context    context.Context
 }
 
 type findResult struct {
@@ -77,11 +80,16 @@ func (p *model) SetHandler(handler *Mgo) *model {
 }
 
 func (p *model) Query() *Query {
-	return p.handler.DB(p.db).C(p.collection)
+	return p.handler.DB(p.db).C(p.collection).Context(p.context)
+}
+
+func (p *model) Context(ctx context.Context) *model {
+	p.context = ctx
+	return p
 }
 
 func (p *model) Find(find interface{}) *findResult {
-	return &findResult{find: p.handler.DB(p.db).C(p.collection).Find(find)}
+	return &findResult{find: p.handler.DB(p.db).C(p.collection).Find(find).Context(p.context)}
 }
 
 func (p *model) Count(find interface{}) (int64, error) {
@@ -89,25 +97,25 @@ func (p *model) Count(find interface{}) (int64, error) {
 }
 
 func (p *model) Set(filter interface{}, update interface{}) *UpdateMany {
-	return p.handler.DB(p.db).C(p.collection).UpdateMany(filter, bson.M{"$set": update})
+	return p.handler.DB(p.db).C(p.collection).UpdateMany(filter, bson.M{"$set": update}).Context(p.context)
 }
 
 func (p *model) Update(filter interface{}, update interface{}) *UpdateMany {
-	return p.handler.DB(p.db).C(p.collection).UpdateMany(filter, update)
+	return p.handler.DB(p.db).C(p.collection).UpdateMany(filter, update).Context(p.context)
 }
 
 func (p *model) Insert(document ...interface{}) *InsertMany {
-	return p.handler.DB(p.db).C(p.collection).InsertMany(document)
+	return p.handler.DB(p.db).C(p.collection).InsertMany(document).Context(p.context)
 }
 
 func (p *model) Delete(filter interface{}) *DeleteMany {
-	return p.handler.DB(p.db).C(p.collection).DeleteMany(filter)
+	return p.handler.DB(p.db).C(p.collection).DeleteMany(filter).Context(p.context)
 }
 
 func (p *model) FindAndModify(filter interface{}, update interface{}) *FindOneAndUpdate {
-	return p.handler.DB(p.db).C(p.collection).FindOneAndUpdate(filter, update)
+	return p.handler.DB(p.db).C(p.collection).FindOneAndUpdate(filter, update).Context(p.context)
 }
 
 func (p *model) Aggregate(pipeline interface{}) *aggregateResult {
-	return &aggregateResult{aggregate: p.handler.DB(p.db).C(p.collection).Aggregate(pipeline)}
+	return &aggregateResult{aggregate: p.handler.DB(p.db).C(p.collection).Aggregate(pipeline).Context(p.context)}
 }

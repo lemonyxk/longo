@@ -24,8 +24,8 @@ type InsertOne struct {
 	sessionContext  context.Context
 }
 
-func NewInsertOne(collection *mongo.Collection, document interface{}) *InsertOne {
-	return &InsertOne{collection: collection, insertOneOption: &options.InsertOneOptions{}, document: document}
+func NewInsertOne(ctx context.Context, collection *mongo.Collection, document interface{}) *InsertOne {
+	return &InsertOne{collection: collection, insertOneOption: &options.InsertOneOptions{}, document: document, sessionContext: ctx}
 }
 
 func (i *InsertOne) Option(opt *options.InsertOneOptions) *InsertOne {

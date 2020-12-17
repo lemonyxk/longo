@@ -25,8 +25,8 @@ type FindOneAndUpdate struct {
 	sessionContext context.Context
 }
 
-func NewFindOneAndUpdate(collection *mongo.Collection, filter interface{}, update interface{}) *FindOneAndUpdate {
-	return &FindOneAndUpdate{collection: collection, option: &options.FindOneAndUpdateOptions{}, filter: filter, update: update}
+func NewFindOneAndUpdate(ctx context.Context, collection *mongo.Collection, filter interface{}, update interface{}) *FindOneAndUpdate {
+	return &FindOneAndUpdate{collection: collection, option: &options.FindOneAndUpdateOptions{}, filter: filter, update: update, sessionContext: ctx}
 }
 
 func (f *FindOneAndUpdate) Sort(sort interface{}) *FindOneAndUpdate {
@@ -61,7 +61,7 @@ func (f *FindOneAndUpdate) Option(opt *options.FindOneAndUpdateOptions) *FindOne
 	return f
 }
 
-func (f *FindOneAndUpdate) Get(result interface{}) error {
+func (f *FindOneAndUpdate) Do(result interface{}) error {
 	var res = &SingleResult{singleResult: f.collection.FindOneAndUpdate(f.sessionContext, f.filter, f.update, f.option)}
-	return res.Get(result)
+	return res.Do(result)
 }

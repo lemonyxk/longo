@@ -25,8 +25,8 @@ type UpdateMany struct {
 	sessionContext   context.Context
 }
 
-func NewUpdateMany(collection *mongo.Collection, filter interface{}, update interface{}) *UpdateMany {
-	return &UpdateMany{collection: collection, updateManyOption: &options.UpdateOptions{}, filter: filter, update: update}
+func NewUpdateMany(ctx context.Context, collection *mongo.Collection, filter interface{}, update interface{}) *UpdateMany {
+	return &UpdateMany{collection: collection, updateManyOption: &options.UpdateOptions{}, filter: filter, update: update, sessionContext: ctx}
 }
 
 func (i *UpdateMany) Option(opt *options.UpdateOptions) *UpdateMany {

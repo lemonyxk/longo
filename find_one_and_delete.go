@@ -24,8 +24,8 @@ type FindOneAndDelete struct {
 	sessionContext          context.Context
 }
 
-func NewFindOneAndDelete(collection *mongo.Collection, filter interface{}) *FindOneAndDelete {
-	return &FindOneAndDelete{collection: collection, findOneAndDeleteOptions: &options.FindOneAndDeleteOptions{}, filter: filter}
+func NewFindOneAndDelete(ctx context.Context, collection *mongo.Collection, filter interface{}) *FindOneAndDelete {
+	return &FindOneAndDelete{collection: collection, findOneAndDeleteOptions: &options.FindOneAndDeleteOptions{}, filter: filter, sessionContext: ctx}
 }
 
 func (f *FindOneAndDelete) Sort(sort interface{}) *FindOneAndDelete {
@@ -48,7 +48,7 @@ func (f *FindOneAndDelete) Option(opt *options.FindOneAndDeleteOptions) *FindOne
 	return f
 }
 
-func (f *FindOneAndDelete) Get(result interface{}) error {
+func (f *FindOneAndDelete) Do(result interface{}) error {
 	var res = &SingleResult{singleResult: f.collection.FindOneAndDelete(f.sessionContext, f.filter, f.findOneAndDeleteOptions)}
-	return res.Get(result)
+	return res.Do(result)
 }

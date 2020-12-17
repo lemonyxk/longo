@@ -24,8 +24,8 @@ type Aggregate struct {
 	sessionContext context.Context
 }
 
-func NewAggregate(collection *mongo.Collection, pipeline interface{}) *Aggregate {
-	return &Aggregate{collection: collection, option: &options.AggregateOptions{}, pipeline: pipeline}
+func NewAggregate(ctx context.Context, collection *mongo.Collection, pipeline interface{}) *Aggregate {
+	return &Aggregate{collection: collection, option: &options.AggregateOptions{}, pipeline: pipeline, sessionContext: ctx}
 }
 
 func (f *Aggregate) Context(ctx context.Context) *Aggregate {

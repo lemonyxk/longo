@@ -18,6 +18,6 @@ type SingleResult struct {
 	singleResult *mongo.SingleResult
 }
 
-func (sg *SingleResult) Get(result interface{}) error {
+func (sg *SingleResult) Do(result interface{}) error {
 	return sg.singleResult.Decode(result)
 }

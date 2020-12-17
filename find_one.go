@@ -24,8 +24,8 @@ type FindOne struct {
 	sessionContext context.Context
 }
 
-func NewFindOne(collection *mongo.Collection, filter interface{}) *FindOne {
-	return &FindOne{collection: collection, findOptions: &options.FindOneOptions{}, filter: filter}
+func NewFindOne(ctx context.Context, collection *mongo.Collection, filter interface{}) *FindOne {
+	return &FindOne{collection: collection, findOptions: &options.FindOneOptions{}, filter: filter, sessionContext: ctx}
 }
 
 func (f *FindOne) Sort(sort interface{}) *FindOne {
@@ -53,7 +53,7 @@ func (f *FindOne) Option(opt *options.FindOneOptions) *FindOne {
 	return f
 }
 
-func (f *FindOne) Get(result interface{}) error {
+func (f *FindOne) Do(result interface{}) error {
 	var res = &SingleResult{singleResult: f.collection.FindOne(f.sessionContext, f.filter, f.findOptions)}
-	return res.Get(result)
+	return res.Do(result)
 }

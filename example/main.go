@@ -51,11 +51,16 @@ func main() {
 
 	mux.Add(100)
 
+	var ctx mongo.SessionContext
+
 	for i := 0; i < 100; i++ {
 		go func() {
 			// Transaction can not create collection, so you have to create it before you run.
 			// maxTransactionLockRequestTimeoutMillis 5ms
-			var err = mgo.Transaction(func(handler *longo.Mgo, sessionContext mongo.SessionContext) error {
+			var err = mgo.TransactionWithLock(func(handler *longo.Mgo, sessionContext mongo.SessionContext) error {
+
+				ctx = sessionContext
+				log.Println(ctx.ID().Validate())
 
 				var err error
 
@@ -64,20 +69,22 @@ func main() {
 				}
 
 				var test = mgo.DB("Test").C("test")
-				err = test.FindOneAndUpdate(bson.M{"id": 1}, bson.M{"$inc": bson.M{"money": 1}}).Context(sessionContext).ReturnDocument().Get(&result)
+				err = test.FindOneAndUpdate(bson.M{"id": 1}, bson.M{"$inc": bson.M{"money": 1}}).Context(sessionContext).ReturnDocument().Do(&result)
 
 				var result1 struct {
 					Money int `bson:"money"`
 				}
 
 				var test1 = mgo.DB("Test").C("test1")
-				err = test1.FindOneAndUpdate(bson.M{"id": 1}, bson.M{"$inc": bson.M{"money": 1}}).Context(sessionContext).ReturnDocument().Get(&result1)
+				err = test1.FindOneAndUpdate(bson.M{"id": 1}, bson.M{"$inc": bson.M{"money": 1}}).Context(sessionContext).ReturnDocument().Do(&result1)
 
-				if result.Money != result1.Money {
-					panic("error")
-				}
+				// if result.Money != result1.Money {
+				// 	panic("error")
+				// }
+				//
+				// log.Println(mgo == handler)
 
-				log.Println(mgo == handler)
+				log.Println(result.Money, result1.Money)
 
 				return err
 			})
@@ -89,12 +96,10 @@ func main() {
 	}
 
 	mux.Wait()
-
-	// var res bson.M
-	// err = mgo.DB("Test").C("test").FindOneAndUpdate(bson.M{"name": "a"}, bson.M{"$set": bson.M{"name": "a111123aaaa"}}).ReturnDocument().Get(&res)
-	// log.Println(err)
-	// log.Println(res)
-
+	var res bson.M
+	err = mgo.DB("Test").C("test").FindOneAndUpdate(bson.M{"id": 1}, bson.M{"$inc": bson.M{"money": 1}}).Context(ctx).ReturnDocument().Do(&res)
+	log.Println(err)
+	log.Println(res)
 	// animal.Addr = "hello"
 	//
 	// log.Println(mgo.DB("Test").C("test").Find(bson.M{}).One(&animal))
