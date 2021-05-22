@@ -37,7 +37,44 @@ type Eye struct {
 	Color string `json:"color" bson:"color"`
 }
 
+type Money struct {
+	Money int `bson:"money"`
+}
+
 func main() {
+	var url = "mongodb://root:1354243@127.0.0.1:27017,127.0.0.1:27018,127.0.0.1:27019"
+
+	mgo, _ := longo.NewClient().Connect(&longo.Config{Url: url})
+
+	err := mgo.RawClient().Ping(nil, longo.ReadPreference.Primary)
+	if err != nil {
+		panic(err)
+	}
+
+	var result = &Money{}
+
+	mgo.DB("Test").C("test").Find(bson.M{"id": 1}).One(result)
+
+	log.Println(result)
+
+	// mgo.TransactionWithLock(func(handler *longo.Mgo, sessionContext mongo.SessionContext) error {
+	//
+	// 	var err error
+	//
+	// 	var result = &Money{}
+	//
+	// 	var test = mgo.DB("Test").C("test")
+	// 	err = test.FindOneAndUpdate(bson.M{"id": 1}, bson.M{"$inc": bson.M{"money": 1}}).Context(sessionContext).ReturnDocument().Do(&result)
+	//
+	// 	time.Sleep(time.Second * 1)
+	//
+	// 	log.Println(result, err)
+	//
+	// 	return err
+	// })
+}
+
+func test() {
 	var url = "mongodb://root:1354243@127.0.0.1:27017,127.0.0.1:27018,127.0.0.1:27019"
 
 	mgo, _ := longo.NewClient().Connect(&longo.Config{Url: url})
@@ -96,8 +133,8 @@ func main() {
 	}
 
 	mux.Wait()
-	var res bson.M
-	err = mgo.DB("Test").C("test").FindOneAndUpdate(bson.M{"id": 1}, bson.M{"$inc": bson.M{"money": 1}}).Context(ctx).ReturnDocument().Do(&res)
+	var res *bson.M
+	err = mgo.DB("Test").C("test").FindOneAndUpdate(bson.M{"id": 1}, bson.M{"$inc": bson.M{"money": 1}}).Context(ctx).ReturnDocument().Do(res)
 	log.Println(err)
 	log.Println(res)
 	// animal.Addr = "hello"
