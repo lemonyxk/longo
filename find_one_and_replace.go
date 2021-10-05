@@ -18,36 +18,41 @@ import (
 )
 
 type FindOneAndReplace struct {
-	collection               *mongo.Collection
-	findOneAndReplaceOptions *options.FindOneAndReplaceOptions
-	filter                   interface{}
-	replacement              interface{}
-	sessionContext           context.Context
+	collection     *mongo.Collection
+	option         *options.FindOneAndReplaceOptions
+	filter         interface{}
+	replacement    interface{}
+	sessionContext context.Context
 }
 
 func NewFindOneAndReplace(ctx context.Context, collection *mongo.Collection, filter interface{}, replacement interface{}) *FindOneAndReplace {
-	return &FindOneAndReplace{collection: collection, findOneAndReplaceOptions: &options.FindOneAndReplaceOptions{}, filter: filter, replacement: replacement, sessionContext: ctx}
+	return &FindOneAndReplace{collection: collection, option: &options.FindOneAndReplaceOptions{}, filter: filter, replacement: replacement, sessionContext: ctx}
+}
+
+func (f *FindOneAndReplace) Hit(hit interface{}) *FindOneAndReplace {
+	f.option.Hint = hit
+	return f
 }
 
 func (f *FindOneAndReplace) Sort(sort interface{}) *FindOneAndReplace {
-	f.findOneAndReplaceOptions.Sort = sort
+	f.option.Sort = sort
 	return f
 }
 
 func (f *FindOneAndReplace) Projection(projection interface{}) *FindOneAndReplace {
-	f.findOneAndReplaceOptions.Projection = projection
+	f.option.Projection = projection
 	return f
 }
 
 func (f *FindOneAndReplace) Upsert() *FindOneAndReplace {
 	var t = true
-	f.findOneAndReplaceOptions.Upsert = &t
+	f.option.Upsert = &t
 	return f
 }
 
 func (f *FindOneAndReplace) ReturnDocument() *FindOneAndReplace {
 	var t = options.After
-	f.findOneAndReplaceOptions.ReturnDocument = &t
+	f.option.ReturnDocument = &t
 	return f
 }
 
@@ -57,11 +62,11 @@ func (f *FindOneAndReplace) Context(ctx context.Context) *FindOneAndReplace {
 }
 
 func (f *FindOneAndReplace) Option(opt *options.FindOneAndReplaceOptions) *FindOneAndReplace {
-	f.findOneAndReplaceOptions = opt
+	f.option = opt
 	return f
 }
 
 func (f *FindOneAndReplace) Do(result interface{}) error {
-	var res = &SingleResult{singleResult: f.collection.FindOneAndReplace(f.sessionContext, f.filter, f.replacement, f.findOneAndReplaceOptions)}
+	var res = &SingleResult{singleResult: f.collection.FindOneAndReplace(f.sessionContext, f.filter, f.replacement, f.option)}
 	return res.Do(result)
 }

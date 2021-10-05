@@ -29,6 +29,11 @@ func NewFindOneAndUpdate(ctx context.Context, collection *mongo.Collection, filt
 	return &FindOneAndUpdate{collection: collection, option: &options.FindOneAndUpdateOptions{}, filter: filter, update: update, sessionContext: ctx}
 }
 
+func (f *FindOneAndUpdate) Hit(hit interface{}) *FindOneAndUpdate {
+	f.option.Hint = hit
+	return f
+}
+
 func (f *FindOneAndUpdate) Sort(sort interface{}) *FindOneAndUpdate {
 	f.option.Sort = sort
 	return f

@@ -19,27 +19,32 @@ import (
 
 type FindOne struct {
 	collection     *mongo.Collection
-	findOptions    *options.FindOneOptions
+	option         *options.FindOneOptions
 	filter         interface{}
 	sessionContext context.Context
 }
 
 func NewFindOne(ctx context.Context, collection *mongo.Collection, filter interface{}) *FindOne {
-	return &FindOne{collection: collection, findOptions: &options.FindOneOptions{}, filter: filter, sessionContext: ctx}
+	return &FindOne{collection: collection, option: &options.FindOneOptions{}, filter: filter, sessionContext: ctx}
+}
+
+func (f *FindOne) Hit(hit interface{}) *FindOne {
+	f.option.Hint = hit
+	return f
 }
 
 func (f *FindOne) Sort(sort interface{}) *FindOne {
-	f.findOptions.Sort = sort
+	f.option.Sort = sort
 	return f
 }
 
 func (f *FindOne) Skip(skip int64) *FindOne {
-	f.findOptions.Skip = &skip
+	f.option.Skip = &skip
 	return f
 }
 
 func (f *FindOne) Projection(projection interface{}) *FindOne {
-	f.findOptions.Projection = projection
+	f.option.Projection = projection
 	return f
 }
 
@@ -49,11 +54,11 @@ func (f *FindOne) Context(ctx context.Context) *FindOne {
 }
 
 func (f *FindOne) Option(opt *options.FindOneOptions) *FindOne {
-	f.findOptions = opt
+	f.option = opt
 	return f
 }
 
 func (f *FindOne) Do(result interface{}) error {
-	var res = &SingleResult{singleResult: f.collection.FindOne(f.sessionContext, f.filter, f.findOptions)}
+	var res = &SingleResult{singleResult: f.collection.FindOne(f.sessionContext, f.filter, f.option)}
 	return res.Do(result)
 }

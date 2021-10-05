@@ -28,6 +28,11 @@ func NewFind(ctx context.Context, collection *mongo.Collection, filter interface
 	return &Find{collection: collection, option: &options.FindOptions{}, filter: filter, sessionContext: ctx}
 }
 
+func (f *Find) Hit(hit interface{}) *Find {
+	f.option.Hint = hit
+	return f
+}
+
 func (f *Find) Sort(sort interface{}) *Find {
 	f.option.Sort = sort
 	return f
@@ -56,6 +61,10 @@ func (f *Find) Context(ctx context.Context) *Find {
 func (f *Find) Option(opt *options.FindOptions) *Find {
 	f.option = opt
 	return f
+}
+
+func (f *Find) Count() (int64, error) {
+	return f.collection.CountDocuments(f.sessionContext, f.filter, &options.CountOptions{Hint: f.option.Hint})
 }
 
 func (f *Find) All(result interface{}) error {

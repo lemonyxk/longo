@@ -33,6 +33,11 @@ func (f *Aggregate) Context(ctx context.Context) *Aggregate {
 	return f
 }
 
+func (f *Aggregate) Hit(hit interface{}) *Aggregate {
+	f.option.Hint = hit
+	return f
+}
+
 func (f *Aggregate) Option(opt *options.AggregateOptions) *Aggregate {
 	f.option = opt
 	return f
