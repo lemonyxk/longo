@@ -96,20 +96,20 @@ func (p *Model) Count(find interface{}) (int64, error) {
 	return p.Handler.DB(p.DB).C(p.Collection).CountDocuments(find)
 }
 
-func (p *Model) Set(filter interface{}, update interface{}) *UpdateMany {
-	return p.Handler.DB(p.DB).C(p.Collection).UpdateMany(filter, bson.M{"$set": update}).Context(p.Ctx)
+func (p *Model) Set(filter interface{}, update interface{}) *UpdateResult {
+	return p.Handler.DB(p.DB).C(p.Collection).UpdateMany(filter, bson.M{"$set": update}).Context(p.Ctx).Do()
 }
 
-func (p *Model) Update(filter interface{}, update interface{}) *UpdateMany {
-	return p.Handler.DB(p.DB).C(p.Collection).UpdateMany(filter, update).Context(p.Ctx)
+func (p *Model) Update(filter interface{}, update interface{}) *UpdateResult {
+	return p.Handler.DB(p.DB).C(p.Collection).UpdateMany(filter, update).Context(p.Ctx).Do()
 }
 
-func (p *Model) Insert(document ...interface{}) *InsertMany {
-	return p.Handler.DB(p.DB).C(p.Collection).InsertMany(document).Context(p.Ctx)
+func (p *Model) Insert(document ...interface{}) *InsertManyResult {
+	return p.Handler.DB(p.DB).C(p.Collection).InsertMany(document).Context(p.Ctx).Do()
 }
 
-func (p *Model) Delete(filter interface{}) *DeleteMany {
-	return p.Handler.DB(p.DB).C(p.Collection).DeleteMany(filter).Context(p.Ctx)
+func (p *Model) Delete(filter interface{}) *DeleteResult {
+	return p.Handler.DB(p.DB).C(p.Collection).DeleteMany(filter).Context(p.Ctx).Do()
 }
 
 func (p *Model) FindAndModify(filter interface{}, update interface{}) *FindOneAndUpdate {
