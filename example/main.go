@@ -57,6 +57,17 @@ func main() {
 
 	log.Println(result)
 
+	// "renameCollection":"Test.test1", "to":"Test.test2"
+	var res interface{}
+	err = mgo.DB("admin").RunCommand(bson.D{
+		bson.E{Key: "renameCollection", Value: "Test.test1"},
+		bson.E{Key: "to", Value: "Test.test2"},
+	}).One(&res)
+	if err != nil {
+		log.Println(err)
+	}
+	log.Println(res)
+
 	// mgo.TransactionWithLock(func(handler *longo.Mgo, sessionContext mongo.SessionContext) error {
 	//
 	// 	var err error

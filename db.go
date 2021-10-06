@@ -12,7 +12,9 @@ package longo
 
 import (
 	"context"
+
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type DB struct {
@@ -27,4 +29,8 @@ func (db *DB) C(collection string) *Query {
 
 func (db *DB) Drop() error {
 	return db.client.Database(db.db).Drop(context.Background())
+}
+
+func (db *DB) RunCommand(command interface{}) *Command {
+	return &Command{db: db.client.Database(db.db), command: command, option: &options.RunCmdOptions{}}
 }
