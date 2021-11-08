@@ -11,6 +11,7 @@
 package main
 
 import (
+	"errors"
 	"log"
 	"sync"
 
@@ -68,21 +69,25 @@ func main() {
 	}
 	log.Println(res)
 
-	// mgo.TransactionWithLock(func(handler *longo.Mgo, sessionContext mongo.SessionContext) error {
-	//
-	// 	var err error
-	//
-	// 	var result = &Money{}
-	//
-	// 	var test = mgo.DB("Test").C("test")
-	// 	err = test.FindOneAndUpdate(bson.M{"id": 1}, bson.M{"$inc": bson.M{"money": 1}}).Context(sessionContext).ReturnDocument().Do(&result)
-	//
-	// 	time.Sleep(time.Second * 1)
-	//
-	// 	log.Println(result, err)
-	//
-	// 	return err
-	// })
+	mgo.TransactionWithLock(func(handler *longo.Mgo, sessionContext mongo.SessionContext) error {
+
+		var err error
+
+		var result = &Money{}
+
+		var test = mgo.DB("Test").C("test")
+		err = test.FindOneAndUpdate(bson.M{"id": 1}, bson.M{"$inc": bson.M{"money": 1}}).Context(sessionContext).ReturnDocument().Do(&result)
+
+		// time.Sleep(time.Second * 1)
+
+		// log.Println(result, err)
+
+		err = errors.New("1")
+
+		test.FindOneAndUpdate(bson.M{"id": 1}, bson.M{"$inc": bson.M{"aaa": 1}}).Context(sessionContext).ReturnDocument().Do(&result)
+
+		return err
+	})
 }
 
 func test() {
