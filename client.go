@@ -75,7 +75,7 @@ func (c *Client) init(config *Config) {
 	}
 
 	if c.config.WriteConcern == nil {
-		c.config.WriteConcern = &WriteConcern{W: 1, J: false, Wtimeout: 3 * time.Second}
+		c.config.WriteConcern = &WriteConcern{W: -1, J: false, Wtimeout: 3 * time.Second}
 	}
 
 	if c.config.ConnectTimeout == 0 {

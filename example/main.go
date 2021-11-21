@@ -13,7 +13,8 @@ package main
 import (
 	"errors"
 	"log"
-	"sync"
+	"reflect"
+	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -21,76 +22,28 @@ import (
 	"github.com/lemoyxk/longo"
 )
 
-type Example struct {
-	Hello string `json:"hello"`
-}
-
-type Animal struct {
-	Name string `json:"name" bson:"name"`
-	Addr string `json:"addr" bson:"addr"`
-}
-
-type Hand struct {
-	Size int `json:"size" bson:"size"`
-}
-
-type Eye struct {
-	Color string `json:"color" bson:"color"`
-}
-
-type Money struct {
-	Money int `bson:"money"`
+type Test2 struct {
+	ID    int     `json:"id" bson:"id"`
+	Money float64 `json:"money" bson:"money"`
 }
 
 func main() {
-	var url = "mongodb://root:1354243@127.0.0.1:27017,127.0.0.1:27018,127.0.0.1:27019"
-
-	mgo, _ := longo.NewClient().Connect(&longo.Config{Url: url})
-
-	err := mgo.RawClient().Ping(nil, longo.ReadPreference.Primary)
-	if err != nil {
-		panic(err)
-	}
-
-	var result = &Money{}
-
-	mgo.DB("Test").C("test").Find(bson.M{"id": 1}).One(result)
-
-	log.Println(result)
-
-	// "renameCollection":"Test.test1", "to":"Test.test2"
-	var res interface{}
-	err = mgo.DB("admin").RunCommand(bson.D{
-		bson.E{Key: "renameCollection", Value: "Test.test1"},
-		bson.E{Key: "to", Value: "Test.test2"},
-	}).One(&res)
-	if err != nil {
-		log.Println(err)
-	}
-	log.Println(res)
-
-	mgo.TransactionWithLock(func(handler *longo.Mgo, sessionContext mongo.SessionContext) error {
-
-		var err error
-
-		var result = &Money{}
-
-		var test = mgo.DB("Test").C("test")
-		err = test.FindOneAndUpdate(bson.M{"id": 1}, bson.M{"$inc": bson.M{"money": 1}}).Context(sessionContext).ReturnDocument().Do(&result)
-
-		// time.Sleep(time.Second * 1)
-
-		// log.Println(result, err)
-
-		err = errors.New("1")
-
-		test.FindOneAndUpdate(bson.M{"id": 1}, bson.M{"$inc": bson.M{"aaa": 1}}).Context(sessionContext).ReturnDocument().Do(&result)
-
-		return err
-	})
+	// tranIsolationRepeatableOutside()
+	// tranIsolationRepeatable()
+	// tranIsolationRepeatableOutsideWithWrite()
+	// tranIsolationRepeatableWithWrite()
 }
 
-func test() {
+// MONGO与MYSQL的事务区别在于
+// 如果在可重复读的事务隔离性下
+// 两次读取外界干扰的情况下,如果继续写 (A:R-B:W-A:W)
+// MONGO默认使用悲观锁解决,即返回错误
+// MYSQL需要自己update check来检测是否是原来的值
+
+// 验证MONGO事务隔离性
+// 非事务可重复读
+// 即外界非事务改变不会干扰事务中的读取
+func tranIsolationRepeatableOutside() {
 	var url = "mongodb://root:1354243@127.0.0.1:27017,127.0.0.1:27018,127.0.0.1:27019"
 
 	mgo, _ := longo.NewClient().Connect(&longo.Config{Url: url})
@@ -100,62 +53,297 @@ func test() {
 		panic(err)
 	}
 
-	var mux sync.WaitGroup
+	// 事务读取
+	// 外界写入
+	// 事务读取 NO CHANGE
 
-	mux.Add(100)
+	go func() {
+		err = mgo.TransactionWithLock(func(handler *longo.Mgo, sessionContext mongo.SessionContext) error {
 
-	var ctx mongo.SessionContext
+			var err error
 
-	for i := 0; i < 100; i++ {
-		go func() {
-			// Transaction can not create collection, so you have to create it before you run.
-			// maxTransactionLockRequestTimeoutMillis 5ms
-			var err = mgo.TransactionWithLock(func(handler *longo.Mgo, sessionContext mongo.SessionContext) error {
+			var ress1 []Test2
 
-				ctx = sessionContext
-				log.Println(ctx.ID().Validate())
+			var ress2 []Test2
 
-				var err error
+			log.Println("tran start")
 
-				var result struct {
-					Money int `bson:"money"`
-				}
+			var test2 = mgo.DB("Test").C("test2")
 
-				var test = mgo.DB("Test").C("test")
-				err = test.FindOneAndUpdate(bson.M{"id": 1}, bson.M{"$inc": bson.M{"money": 1}}).Context(sessionContext).ReturnDocument().Do(&result)
+			err = test2.Find(bson.M{}).Context(sessionContext).All(&ress1)
 
-				var result1 struct {
-					Money int `bson:"money"`
-				}
+			log.Println("tran:", ress1)
 
-				var test1 = mgo.DB("Test").C("test1")
-				err = test1.FindOneAndUpdate(bson.M{"id": 1}, bson.M{"$inc": bson.M{"money": 1}}).Context(sessionContext).ReturnDocument().Do(&result1)
+			time.Sleep(time.Second * 2)
 
-				// if result.Money != result1.Money {
-				// 	panic("error")
-				// }
-				//
-				// log.Println(mgo == handler)
+			err = test2.Find(bson.M{}).Context(sessionContext).All(&ress2)
 
-				log.Println(result.Money, result1.Money)
+			log.Println("tran:", ress2)
 
-				return err
-			})
+			if !reflect.DeepEqual(ress1, ress2) {
+				err = errors.New("inconsistent data")
+			}
 
+			return err
+		})
+
+		log.Println(err)
+	}()
+
+	go func() {
+		time.Sleep(time.Second * 1)
+
+		var res Test2
+		var test2 = mgo.DB("Test").C("test2")
+
+		var err = test2.FindOneAndUpdate(bson.M{"id": 1}, bson.M{"$inc": bson.M{"money": 1}}).
+			ReturnDocument().Do(&res)
+		if err != nil {
 			log.Println(err)
+		} else {
+			log.Println("outside:", res)
+		}
+	}()
 
-			mux.Done()
-		}()
+	select {}
+}
+
+// 验证MONGO事务隔离性
+// 事务可重复读
+// 即外界事务改变不会干扰事务中的读取
+// maxTransactionLockRequestTimeoutMillis 事务之间等待锁最长5MS
+func tranIsolationRepeatable() {
+	var url = "mongodb://root:1354243@127.0.0.1:27017,127.0.0.1:27018,127.0.0.1:27019"
+
+	mgo, _ := longo.NewClient().Connect(&longo.Config{Url: url})
+
+	err := mgo.RawClient().Ping(nil, longo.ReadPreference.Primary)
+	if err != nil {
+		panic(err)
 	}
 
-	mux.Wait()
-	var res *bson.M
-	err = mgo.DB("Test").C("test").FindOneAndUpdate(bson.M{"id": 1}, bson.M{"$inc": bson.M{"money": 1}}).Context(ctx).ReturnDocument().Do(res)
-	log.Println(err)
-	log.Println(res)
-	// animal.Addr = "hello"
-	//
-	// log.Println(mgo.DB("Test").C("test").Find(bson.M{}).One(&animal))
-	//
-	// log.Println(animal)
+	// 事务1读取
+	// 事务2写入
+	// 事务1读取 NO CHANGE
+
+	go func() {
+		err = mgo.Transaction(func(handler *longo.Mgo, sessionContext mongo.SessionContext) error {
+			var err error
+
+			var ress1 []Test2
+
+			var ress2 []Test2
+
+			log.Println("tran1 start")
+
+			var test2 = mgo.DB("Test").C("test2")
+
+			err = test2.Find(bson.M{}).Context(sessionContext).All(&ress1)
+
+			log.Println("tran1:", ress1)
+
+			time.Sleep(time.Millisecond * 2)
+
+			err = test2.Find(bson.M{}).Context(sessionContext).All(&ress2)
+
+			log.Println("tran1:", ress2)
+
+			if !reflect.DeepEqual(ress1, ress2) {
+				err = errors.New("inconsistent data")
+			}
+
+			return err
+		})
+
+		log.Println(err)
+	}()
+
+	go func() {
+		time.Sleep(time.Millisecond)
+
+		err = mgo.Transaction(func(handler *longo.Mgo, sessionContext mongo.SessionContext) error {
+			var err error
+
+			var res Test2
+
+			log.Println("tran2 start")
+
+			var test2 = mgo.DB("Test").C("test2")
+
+			err = test2.FindOneAndUpdate(bson.M{"id": 1}, bson.M{"$inc": bson.M{"money": 1}}).Context(sessionContext).
+				ReturnDocument().Do(&res)
+
+			log.Println("tran2:", res)
+
+			return err
+		})
+
+		log.Println(err)
+	}()
+
+	select {}
+}
+
+// 验证MONGO事务隔离性
+// 非事务可重复读再写
+// 即外界非事务改变不会干扰事务中的读取之后再写入
+// MONGO:事务查询之后外界有写入,此时如果事务继续写,则会返回错误
+//      如果外界后写入则会等待事务完成
+// MYSQL:事务查询之后外界有写入,此时如果事务继续写,则需要自己使用悲观锁(for update)或者乐观锁(update check)来解决外界非事务更改
+//      如果外界后写入则会等待事务完成
+func tranIsolationRepeatableOutsideWithWrite() {
+	var url = "mongodb://root:1354243@127.0.0.1:27017,127.0.0.1:27018,127.0.0.1:27019"
+
+	mgo, _ := longo.NewClient().Connect(&longo.Config{Url: url})
+
+	err := mgo.RawClient().Ping(nil, longo.ReadPreference.Primary)
+	if err != nil {
+		panic(err)
+	}
+
+	// 事务读取
+	// 外界写入
+	// 事务写入 ERROR
+
+	go func() {
+
+		err = mgo.Transaction(func(handler *longo.Mgo, sessionContext mongo.SessionContext) error {
+
+			var err error
+
+			var res Test2
+
+			var ress1 []Test2
+
+			var ress2 []Test2
+
+			log.Println("tran start")
+
+			var test2 = mgo.DB("Test").C("test2")
+
+			err = test2.Find(bson.M{}).Context(sessionContext).All(&ress1)
+
+			log.Println("tran:", ress1)
+
+			time.Sleep(time.Second * 2)
+
+			err = test2.Find(bson.M{}).Context(sessionContext).All(&ress2)
+
+			log.Println("tran:", ress2)
+
+			if !reflect.DeepEqual(ress1, ress2) {
+				err = errors.New("inconsistent data")
+			}
+
+			// will get a error!!!
+			err = test2.FindOneAndUpdate(bson.M{"id": 1}, bson.M{"$inc": bson.M{"money": 1}}).Context(sessionContext).
+				ReturnDocument().Do(&res)
+
+			log.Println("tran:", res)
+
+			return err
+		})
+
+		log.Println(err)
+	}()
+
+	go func() {
+		time.Sleep(time.Second)
+		var res Test2
+		var test2 = mgo.DB("Test").C("test2")
+
+		var err = test2.FindOneAndUpdate(bson.M{"id": 1}, bson.M{"$inc": bson.M{"money": 1}}).
+			ReturnDocument().Do(&res)
+		if err != nil {
+			log.Println(err)
+		} else {
+			log.Println("outside:", res)
+		}
+	}()
+
+	select {}
+}
+
+// 验证MONGO事务隔离性
+// 事务可重复读再写
+// MONGO:事务查询之后其他事务有写入,此时如果事务继续写,则会返回错误
+//      如果其他事务后写入提交则会等待事务完成
+// MYSQL:事务查询之后其他事务有写入并提交,此时如果该事务继续写,则需要自己使用悲观锁(for update)或者乐观锁(update check)来解决外界事务更改
+//      如果其他事务后写入提交则会等待该事务完成
+// maxTransactionLockRequestTimeoutMillis 事务之间等待锁最长5MS
+func tranIsolationRepeatableWithWrite() {
+	var url = "mongodb://root:1354243@127.0.0.1:27017,127.0.0.1:27018,127.0.0.1:27019"
+
+	mgo, _ := longo.NewClient().Connect(&longo.Config{Url: url})
+
+	err := mgo.RawClient().Ping(nil, longo.ReadPreference.Primary)
+	if err != nil {
+		panic(err)
+	}
+
+	// 事务1读取
+	// 事务2读取
+	// 事务2写入
+	// 事务2提交
+	// 事务1写入 ERROR
+
+	go func() {
+		err = mgo.Transaction(func(handler *longo.Mgo, sessionContext mongo.SessionContext) error {
+			var err error
+
+			var res Test2
+
+			var ress1 []Test2
+
+			log.Println("tran1 start")
+
+			var test2 = mgo.DB("Test").C("test2")
+
+			err = test2.Find(bson.M{}).Context(sessionContext).All(&ress1)
+
+			log.Println("tran1:", ress1)
+
+			time.Sleep(time.Millisecond * 2)
+
+			err = test2.FindOneAndUpdate(bson.M{"id": 1}, bson.M{"$inc": bson.M{"money": 1}}).Context(sessionContext).
+				ReturnDocument().Do(&res)
+
+			log.Println("tran1:", res)
+
+			return err
+		})
+
+		log.Println(err)
+	}()
+
+	go func() {
+		time.Sleep(time.Millisecond * 1)
+
+		err = mgo.Transaction(func(handler *longo.Mgo, sessionContext mongo.SessionContext) error {
+			var err error
+
+			var res Test2
+
+			var ress1 []Test2
+
+			log.Println("tran2 start")
+
+			var test2 = mgo.DB("Test").C("test2")
+
+			err = test2.Find(bson.M{}).Context(sessionContext).All(&ress1)
+
+			log.Println("tran2:", ress1)
+
+			err = test2.FindOneAndUpdate(bson.M{"id": 1}, bson.M{"$inc": bson.M{"money": 1}}).Context(sessionContext).
+				ReturnDocument().Do(&res)
+
+			log.Println("tran2:", res)
+
+			return err
+		})
+
+		log.Println(err)
+	}()
+
+	select {}
 }
