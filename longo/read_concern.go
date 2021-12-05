@@ -25,9 +25,9 @@ var ReadConcern struct {
 }
 
 func init() {
-	ReadConcern.Local = NewReadConcern("local")
-	ReadConcern.Majority = NewReadConcern("majority")
-	ReadConcern.Linearizable = NewReadConcern("linearizable")
-	ReadConcern.Available = NewReadConcern("available")
-	ReadConcern.Snapshot = NewReadConcern("snapshot")
+	ReadConcern.Local = NewReadConcern("Local")
+	ReadConcern.Majority = NewReadConcern("Majority")
+	ReadConcern.Linearizable = NewReadConcern("Linearizable")
+	ReadConcern.Available = NewReadConcern("Available")
+	ReadConcern.Snapshot = NewReadConcern("Snapshot")
 }

@@ -1,0 +1,3 @@
+func (t *@name) Empty() bool {
+	return t == nil || t.@id == @tv
+}

@@ -15,9 +15,11 @@ import (
 )
 
 // WriteConcern
-
+// W write nodes
+// J write logs
+// WTimeout write wait timeout, just useful when w > 1
 type WriteConcern struct {
 	W        int
 	J        bool
-	Wtimeout time.Duration
+	WTimeout time.Duration
 }

@@ -1,0 +1,59 @@
+func New@nameModel() *@nameModel {
+	return &@nameModel{
+		Model: &model.Model{DB: "@db", C: "@collection"},
+	}
+}
+
+type @nameModel struct {
+	*model.Model
+}
+
+type @_nameResult struct {
+	*model.FindResult
+}
+
+func (p *@_nameResult) One() *@name {
+	var res @name
+	_ = p.Find.One(&res)
+	return &res
+}
+
+func (p *@_nameResult) All() []*@name {
+	var res []*@name
+	_ = p.Find.All(&res)
+	return res
+}
+
+func (p *@_nameResult) Sort(sort interface{}) *@_nameResult {
+	p.Find.Sort(sort)
+	return p
+}
+
+func (p *@_nameResult) Skip(skip int64) *@_nameResult {
+	p.Find.Skip(skip)
+	return p
+}
+
+func (p *@_nameResult) Limit(limit int64) *@_nameResult {
+	p.Find.Limit(limit)
+	return p
+}
+
+func (p *@_nameResult) Hit(res interface{}) *@_nameResult {
+	p.Find.Hit(res)
+	return p
+}
+
+func (p *@_nameResult) Projection(projection interface{}) *@_nameResult {
+	p.Find.Projection(projection)
+	return p
+}
+
+func (p *@nameModel) Find(find interface{}) *@_nameResult {
+	return &@_nameResult{FindResult: p.Model.Find(find)}
+}
+
+func (p *@nameModel) SetHandler(handler *longo.Mgo) *@nameModel {
+	p.Handler = handler
+	return p
+}

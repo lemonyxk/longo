@@ -36,7 +36,7 @@ func (m *Mgo) DB(db string) *DB {
 	return &DB{client: m.client, db: db, config: m.config}
 }
 
-// one by one
+// TransactionWithLock one by one
 func (m *Mgo) TransactionWithLock(fn func(handler *Mgo, sessionContext mongo.SessionContext) error, opts ...*options.TransactionOptions) error {
 	m.mux.Lock()
 	defer m.mux.Unlock()

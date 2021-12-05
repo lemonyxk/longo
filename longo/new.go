@@ -11,6 +11,8 @@
 package longo
 
 import (
+	"strings"
+
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/readconcern"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
@@ -26,13 +28,13 @@ func NewObjectID() primitive.ObjectID {
 }
 
 func NewReadPreference(readPreference string) *readpref.ReadPref {
-	rf, _ := readpref.ModeFromString(readPreference)
+	rf, _ := readpref.ModeFromString(strings.ToLower(readPreference))
 	rp, _ := readpref.New(rf)
 	return rp
 }
 
 func NewReadConcern(readConcern string) *readconcern.ReadConcern {
-	return readconcern.New(readconcern.Level(readConcern))
+	return readconcern.New(readconcern.Level(strings.ToLower(readConcern)))
 }
 
 func NewWriteConcern(writeConcern WriteConcern) *writeconcern.WriteConcern {
@@ -43,6 +45,6 @@ func NewWriteConcern(writeConcern WriteConcern) *writeconcern.WriteConcern {
 		opts = append(opts, writeconcern.W(writeConcern.W))
 	}
 	opts = append(opts, writeconcern.J(writeConcern.J))
-	opts = append(opts, writeconcern.WTimeout(writeConcern.Wtimeout))
+	opts = append(opts, writeconcern.WTimeout(writeConcern.WTimeout))
 	return writeconcern.New(opts...)
 }

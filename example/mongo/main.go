@@ -16,10 +16,9 @@ import (
 	"reflect"
 	"time"
 
+	longo2 "github.com/lemoyxk/longo/longo"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
-
-	"github.com/lemoyxk/longo"
 )
 
 type Test2 struct {
@@ -53,9 +52,9 @@ func main() {
 func tranIsolationRepeatableOutside() {
 	var url = "mongodb://root:1354243@127.0.0.1:27017,127.0.0.1:27018,127.0.0.1:27019"
 
-	mgo, _ := longo.NewClient().Connect(&longo.Config{Url: url})
+	mgo, _ := longo2.NewClient().Connect(&longo2.Config{Url: url})
 
-	err := mgo.RawClient().Ping(nil, longo.ReadPreference.Primary)
+	err := mgo.RawClient().Ping(nil, longo2.ReadPreference.Primary)
 	if err != nil {
 		panic(err)
 	}
@@ -65,29 +64,29 @@ func tranIsolationRepeatableOutside() {
 	// 事务读取 NO CHANGE
 
 	go func() {
-		err = mgo.TransactionWithLock(func(handler *longo.Mgo, sessionContext mongo.SessionContext) error {
+		err = mgo.TransactionWithLock(func(handler *longo2.Mgo, sessionContext mongo.SessionContext) error {
 
 			var err error
 
-			var ress1 []Test2
+			var res1 []Test2
 
-			var ress2 []Test2
+			var res2 []Test2
 
 			log.Println("tran start")
 
 			var test2 = mgo.DB("Test").C("test2")
 
-			err = test2.Find(bson.M{}).Context(sessionContext).All(&ress1)
+			err = test2.Find(bson.M{}).Context(sessionContext).All(&res1)
 
-			log.Println("tran:", ress1)
+			log.Println("tran:", res1)
 
 			time.Sleep(time.Second * 2)
 
-			err = test2.Find(bson.M{}).Context(sessionContext).All(&ress2)
+			err = test2.Find(bson.M{}).Context(sessionContext).All(&res2)
 
-			log.Println("tran:", ress2)
+			log.Println("tran:", res2)
 
-			if !reflect.DeepEqual(ress1, ress2) {
+			if !reflect.DeepEqual(res1, res2) {
 				err = errors.New("inconsistent data")
 			}
 
@@ -122,9 +121,9 @@ func tranIsolationRepeatableOutside() {
 func tranIsolationRepeatable() {
 	var url = "mongodb://root:1354243@127.0.0.1:27017,127.0.0.1:27018,127.0.0.1:27019"
 
-	mgo, _ := longo.NewClient().Connect(&longo.Config{Url: url})
+	mgo, _ := longo2.NewClient().Connect(&longo2.Config{Url: url})
 
-	err := mgo.RawClient().Ping(nil, longo.ReadPreference.Primary)
+	err := mgo.RawClient().Ping(nil, longo2.ReadPreference.Primary)
 	if err != nil {
 		panic(err)
 	}
@@ -134,28 +133,28 @@ func tranIsolationRepeatable() {
 	// 事务1读取 NO CHANGE
 
 	go func() {
-		err = mgo.Transaction(func(handler *longo.Mgo, sessionContext mongo.SessionContext) error {
+		err = mgo.Transaction(func(handler *longo2.Mgo, sessionContext mongo.SessionContext) error {
 			var err error
 
-			var ress1 []Test2
+			var res1 []Test2
 
-			var ress2 []Test2
+			var res2 []Test2
 
 			log.Println("tran1 start")
 
 			var test2 = mgo.DB("Test").C("test2")
 
-			err = test2.Find(bson.M{}).Context(sessionContext).All(&ress1)
+			err = test2.Find(bson.M{}).Context(sessionContext).All(&res1)
 
-			log.Println("tran1:", ress1)
+			log.Println("tran1:", res1)
 
 			time.Sleep(time.Millisecond * 2)
 
-			err = test2.Find(bson.M{}).Context(sessionContext).All(&ress2)
+			err = test2.Find(bson.M{}).Context(sessionContext).All(&res2)
 
-			log.Println("tran1:", ress2)
+			log.Println("tran1:", res2)
 
-			if !reflect.DeepEqual(ress1, ress2) {
+			if !reflect.DeepEqual(res1, res2) {
 				err = errors.New("inconsistent data")
 			}
 
@@ -168,7 +167,7 @@ func tranIsolationRepeatable() {
 	go func() {
 		time.Sleep(time.Millisecond)
 
-		err = mgo.Transaction(func(handler *longo.Mgo, sessionContext mongo.SessionContext) error {
+		err = mgo.Transaction(func(handler *longo2.Mgo, sessionContext mongo.SessionContext) error {
 			var err error
 
 			var res Test2
@@ -201,9 +200,9 @@ func tranIsolationRepeatable() {
 func tranIsolationRepeatableOutsideWithWrite() {
 	var url = "mongodb://root:1354243@127.0.0.1:27017,127.0.0.1:27018,127.0.0.1:27019"
 
-	mgo, _ := longo.NewClient().Connect(&longo.Config{Url: url})
+	mgo, _ := longo2.NewClient().Connect(&longo2.Config{Url: url})
 
-	err := mgo.RawClient().Ping(nil, longo.ReadPreference.Primary)
+	err := mgo.RawClient().Ping(nil, longo2.ReadPreference.Primary)
 	if err != nil {
 		panic(err)
 	}
@@ -214,31 +213,31 @@ func tranIsolationRepeatableOutsideWithWrite() {
 
 	go func() {
 
-		err = mgo.Transaction(func(handler *longo.Mgo, sessionContext mongo.SessionContext) error {
+		err = mgo.Transaction(func(handler *longo2.Mgo, sessionContext mongo.SessionContext) error {
 
 			var err error
 
 			var res Test2
 
-			var ress1 []Test2
+			var res1 []Test2
 
-			var ress2 []Test2
+			var res2 []Test2
 
 			log.Println("tran start")
 
 			var test2 = mgo.DB("Test").C("test2")
 
-			err = test2.Find(bson.M{}).Context(sessionContext).All(&ress1)
+			err = test2.Find(bson.M{}).Context(sessionContext).All(&res1)
 
-			log.Println("tran:", ress1)
+			log.Println("tran:", res1)
 
 			time.Sleep(time.Second * 2)
 
-			err = test2.Find(bson.M{}).Context(sessionContext).All(&ress2)
+			err = test2.Find(bson.M{}).Context(sessionContext).All(&res2)
 
-			log.Println("tran:", ress2)
+			log.Println("tran:", res2)
 
-			if !reflect.DeepEqual(ress1, ress2) {
+			if !reflect.DeepEqual(res1, res2) {
 				err = errors.New("inconsistent data")
 			}
 
@@ -281,9 +280,9 @@ func tranIsolationRepeatableOutsideWithWrite() {
 func tranIsolationRepeatableWithWrite() {
 	var url = "mongodb://root:1354243@127.0.0.1:27017,127.0.0.1:27018,127.0.0.1:27019"
 
-	mgo, _ := longo.NewClient().Connect(&longo.Config{Url: url})
+	mgo, _ := longo2.NewClient().Connect(&longo2.Config{Url: url})
 
-	err := mgo.RawClient().Ping(nil, longo.ReadPreference.Primary)
+	err := mgo.RawClient().Ping(nil, longo2.ReadPreference.Primary)
 	if err != nil {
 		panic(err)
 	}
@@ -295,20 +294,20 @@ func tranIsolationRepeatableWithWrite() {
 	// 事务1写入 ERROR
 
 	go func() {
-		err = mgo.Transaction(func(handler *longo.Mgo, sessionContext mongo.SessionContext) error {
+		err = mgo.Transaction(func(handler *longo2.Mgo, sessionContext mongo.SessionContext) error {
 			var err error
 
 			var res Test2
 
-			var ress1 []Test2
+			var res1 []Test2
 
 			log.Println("tran1 start")
 
 			var test2 = mgo.DB("Test").C("test2")
 
-			err = test2.Find(bson.M{}).Context(sessionContext).All(&ress1)
+			err = test2.Find(bson.M{}).Context(sessionContext).All(&res1)
 
-			log.Println("tran1:", ress1)
+			log.Println("tran1:", res1)
 
 			time.Sleep(time.Millisecond * 2)
 
@@ -326,20 +325,20 @@ func tranIsolationRepeatableWithWrite() {
 	go func() {
 		time.Sleep(time.Millisecond * 1)
 
-		err = mgo.Transaction(func(handler *longo.Mgo, sessionContext mongo.SessionContext) error {
+		err = mgo.Transaction(func(handler *longo2.Mgo, sessionContext mongo.SessionContext) error {
 			var err error
 
 			var res Test2
 
-			var ress1 []Test2
+			var res1 []Test2
 
 			log.Println("tran2 start")
 
 			var test2 = mgo.DB("Test").C("test2")
 
-			err = test2.Find(bson.M{}).Context(sessionContext).All(&ress1)
+			err = test2.Find(bson.M{}).Context(sessionContext).All(&res1)
 
-			log.Println("tran2:", ress1)
+			log.Println("tran2:", res1)
 
 			err = test2.FindOneAndUpdate(bson.M{"id": 1}, bson.M{"$inc": bson.M{"money": 1}}).Context(sessionContext).
 				ReturnDocument().Do(&res)

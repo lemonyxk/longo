@@ -23,8 +23,8 @@ type DB struct {
 	db     string
 }
 
-func (db *DB) C(collection string) *Query {
-	return &Query{client: db.client, db: db.db, config: db.config, collection: collection}
+func (db *DB) C(collection string) *Collection {
+	return &Collection{client: db.client, db: db.db, config: db.config, collection: collection}
 }
 
 func (db *DB) Drop() error {
