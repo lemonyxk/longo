@@ -10,10 +10,8 @@
 
 package main
 
-import (
-	"github.com/lemoyxk/longo/longo"
-	"github.com/lemoyxk/longo/model"
-)
+import "github.com/lemoyxk/longo/model"
+import "github.com/lemoyxk/longo/longo"
 
 type Test struct {
 	MongoID int `json:"_id" bson:"_id" mapstructure:"_id"`
@@ -32,6 +30,15 @@ func NewTestModel() *TestModel {
 
 type TestModel struct {
 	*model.Model
+}
+
+func (p *TestModel) Find(find interface{}) *testResult {
+	return &testResult{FindResult: p.Model.Find(find)}
+}
+
+func (p *TestModel) SetHandler(handler *longo.Mgo) *TestModel {
+	p.Handler = handler
+	return p
 }
 
 type testResult struct {
@@ -72,14 +79,5 @@ func (p *testResult) Hit(res interface{}) *testResult {
 
 func (p *testResult) Projection(projection interface{}) *testResult {
 	p.Find.Projection(projection)
-	return p
-}
-
-func (p *TestModel) Find(find interface{}) *testResult {
-	return &testResult{FindResult: p.Model.Find(find)}
-}
-
-func (p *TestModel) SetHandler(handler *longo.Mgo) *TestModel {
-	p.Handler = handler
 	return p
 }

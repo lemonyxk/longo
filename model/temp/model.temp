@@ -8,6 +8,15 @@ type @nameModel struct {
 	*model.Model
 }
 
+func (p *@nameModel) Find(find interface{}) *@_nameResult {
+	return &@_nameResult{FindResult: p.Model.Find(find)}
+}
+
+func (p *@nameModel) SetHandler(handler *longo.Mgo) *@nameModel {
+	p.Handler = handler
+	return p
+}
+
 type @_nameResult struct {
 	*model.FindResult
 }
@@ -46,14 +55,5 @@ func (p *@_nameResult) Hit(res interface{}) *@_nameResult {
 
 func (p *@_nameResult) Projection(projection interface{}) *@_nameResult {
 	p.Find.Projection(projection)
-	return p
-}
-
-func (p *@nameModel) Find(find interface{}) *@_nameResult {
-	return &@_nameResult{FindResult: p.Model.Find(find)}
-}
-
-func (p *@nameModel) SetHandler(handler *longo.Mgo) *@nameModel {
-	p.Handler = handler
 	return p
 }

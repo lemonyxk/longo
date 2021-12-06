@@ -14,6 +14,15 @@ import (
 	"strings"
 )
 
+type createInfo struct {
+	packageName string
+	structName  string
+	db          string
+	collection  string
+	mongoIDName string
+	mongoIDType string
+}
+
 func Do(db, collection, path string) {
 
 	log.Println(path)
@@ -27,7 +36,7 @@ func Do(db, collection, path string) {
 		panic(err)
 	}
 
-	var res [][]byte
+	var ci *createInfo
 
 	ast.Inspect(f, func(node ast.Node) bool {
 
@@ -42,12 +51,25 @@ func Do(db, collection, path string) {
 		// 	}
 		// }
 
+		// switch node.(type) {
+		// case *ast.File:
+		// 	file := node.(*ast.File)
+		// 	if len(file.Imports) == 0 {
+		// 		addImportWithoutAnyImport(file, "github.com/lemoyxk/longo/longo")
+		// 		addImportWithoutAnyImport(file, "github.com/lemoyxk/longo/model")
+		// 	}
+		// case *ast.GenDecl:
+		// 	dec := node.(*ast.GenDecl)
+		// 	if dec.Tok == token.IMPORT {
+		// 		addImport(dec, "github.com/lemoyxk/longo/longo")
+		// 		addImport(dec, "github.com/lemoyxk/longo/model")
+		// 	}
+		// }
+
 		var n, ok = node.(*ast.StructType)
 		if !ok {
 			return true
 		}
-
-		// log.Println(f.Scope.Objects)
 
 		var packageName = f.Name.Name
 		if db == "" {
@@ -78,12 +100,28 @@ func Do(db, collection, path string) {
 			}
 		}
 
-		res = append(res, create(packageName, structName, db, collection, mongoIDName, mongoIDType))
+		if mongoIDName == "" || mongoIDType == "" {
+			return true
+		}
 
+		ci = &createInfo{packageName, structName, db, collection, mongoIDName, mongoIDType}
+
+		return false
+	})
+
+	if ci == nil {
+		return
+	}
+
+	ast.FilterFile(f, func(s string) bool {
+		if s != ci.structName {
+			return false
+		}
 		return true
 	})
 
-	addImportWithoutAnyImport(f)
+	addImportWithoutAnyImport(f, "github.com/lemoyxk/longo/longo")
+	addImportWithoutAnyImport(f, "github.com/lemoyxk/longo/model")
 
 	var output []byte
 	buffer := bytes.NewBuffer(output)
@@ -92,9 +130,9 @@ func Do(db, collection, path string) {
 		panic(err)
 	}
 
-	for i := 0; i < len(res); i++ {
-		buffer.Write(res[i])
-	}
+	var res = create(*ci)
+
+	buffer.Write(res)
 
 	write(path, buffer)
 
@@ -134,26 +172,41 @@ func isMongoID(v string) bool {
 	return strings.Index(v, `bson:"_id"`) != -1
 }
 
-func addImportWithoutAnyImport(file *ast.File) {
+func addImportWithoutAnyImport(file *ast.File, packageName string) {
 	var gList = []ast.Decl{&ast.GenDecl{
 		Tok: token.IMPORT,
 		Specs: []ast.Spec{
 			&ast.ImportSpec{
 				Path: &ast.BasicLit{
 					Kind:  token.STRING,
-					Value: strconv.Quote("github.com/lemoyxk/longo/longo"),
-				},
-			},
-			&ast.ImportSpec{
-				Path: &ast.BasicLit{
-					Kind:  token.STRING,
-					Value: strconv.Quote("github.com/lemoyxk/longo/model"),
+					Value: strconv.Quote(packageName),
 				},
 			},
 		},
 	}}
 
 	file.Decls = append(gList, file.Decls...)
+}
+
+func addImport(dec *ast.GenDecl, importName string) {
+	hasImport := false
+	for _, value := range dec.Specs {
+		importSpec := value.(*ast.ImportSpec)
+		if importSpec.Path.Value == strconv.Quote(importName) {
+			hasImport = true
+		}
+	}
+	if hasImport {
+		return
+	}
+	if !hasImport {
+		dec.Specs = append(dec.Specs, &ast.ImportSpec{
+			Path: &ast.BasicLit{
+				Kind:  token.STRING,
+				Value: strconv.Quote(importName),
+			},
+		})
+	}
 }
 
 func write(path string, buf *bytes.Buffer) {

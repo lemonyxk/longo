@@ -12,6 +12,7 @@ package main
 
 import (
 	"flag"
+	"io/fs"
 	"log"
 	"os"
 	"path/filepath"
@@ -49,7 +50,18 @@ func main() {
 	}
 
 	if f.IsDir() {
-		println(absFilePath, "is a dir")
+		var err = filepath.Walk(absFilePath, func(path string, info fs.FileInfo, err error) error {
+			if info.IsDir() {
+				return err
+			}
+
+			model.Do(dbName, collectionName, path)
+
+			return err
+		})
+		if err != nil {
+			panic(err)
+		}
 		return
 	}
 

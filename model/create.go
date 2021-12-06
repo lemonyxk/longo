@@ -18,16 +18,16 @@ import (
 //go:embed temp
 var temp embed.FS
 
-func create(packageName, name, db, collection, id, t string) []byte {
+func create(ci createInfo) []byte {
 
-	if name == "" || id == "" {
+	if ci.structName == "" || ci.mongoIDName == "" {
 		return nil
 	}
 
 	var tv = ""
-	if t == "int" {
+	if ci.mongoIDType == "int" {
 		tv = `0`
-	} else if t == "string" {
+	} else if ci.mongoIDType == "string" {
 		tv = `""`
 	}
 
@@ -35,9 +35,9 @@ func create(packageName, name, db, collection, id, t string) []byte {
 		return nil
 	}
 
-	var res = createEmptyMethod(name, id, tv)
+	var res = createEmptyMethod(ci.structName, ci.mongoIDName, tv)
 
-	res += createModel(name, db, collection)
+	res += createModel(ci.structName, ci.db, ci.collection)
 
 	return []byte(res)
 }
