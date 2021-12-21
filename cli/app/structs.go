@@ -120,8 +120,8 @@ func Do(db, collection, path string) {
 		return true
 	})
 
-	addImportWithoutAnyImport(f, "github.com/lemoyxk/longo/longo")
-	addImportWithoutAnyImport(f, "github.com/lemoyxk/longo/model")
+	addImportWithoutAnyImport(f, "github.com/lemoyxk/longo")
+	// addImportWithoutAnyImport(f, "github.com/lemoyxk/longo/model")
 
 	var output []byte
 	buffer := bytes.NewBuffer(output)

@@ -1,11 +1,11 @@
 func New@nameModel() *@nameModel {
 	return &@nameModel{
-		Model: &model.Model{DB: "@db", C: "@collection"},
+		Model: &longo.Model{DB: "@db", C: "@collection"},
 	}
 }
 
 type @nameModel struct {
-	*model.Model
+	*longo.Model
 }
 
 func (p *@nameModel) Find(find interface{}) *@_nameResult {
@@ -18,7 +18,7 @@ func (p *@nameModel) SetHandler(handler *longo.Mgo) *@nameModel {
 }
 
 type @_nameResult struct {
-	*model.FindResult
+	*longo.FindResult
 }
 
 func (p *@_nameResult) One() *@name {

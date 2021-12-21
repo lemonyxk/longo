@@ -10,10 +10,7 @@
 
 package a
 
-import (
-	"github.com/lemoyxk/longo/longo"
-	"github.com/lemoyxk/longo/model"
-)
+import "github.com/lemoyxk/longo"
 
 type Name struct {
 	MongoID string `bson:"_id"`
@@ -25,12 +22,12 @@ func (t *Name) Empty() bool {
 
 func NewNameModel() *NameModel {
 	return &NameModel{
-		Model: &model.Model{DB: "222", C: "111"},
+		Model: &longo.Model{DB: "222", C: "111"},
 	}
 }
 
 type NameModel struct {
-	*model.Model
+	*longo.Model
 }
 
 func (p *NameModel) Find(find interface{}) *nameResult {
@@ -43,7 +40,7 @@ func (p *NameModel) SetHandler(handler *longo.Mgo) *NameModel {
 }
 
 type nameResult struct {
-	*model.FindResult
+	*longo.FindResult
 }
 
 func (p *nameResult) One() *Name {
