@@ -8,12 +8,11 @@
 * @create: 2020-04-08 17:39
 **/
 
-package model
+package longo
 
 import (
 	"context"
 
-	"github.com/lemoyxk/longo/longo"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
@@ -25,18 +24,18 @@ func NewModel(db, collection string) *Model {
 }
 
 type Model struct {
-	Handler *longo.Mgo
+	Handler *Mgo
 	DB      string
 	C       string
 	Ctx     context.Context
 }
 
 type FindResult struct {
-	Find *longo.Find
+	Find *Find
 }
 
 type AggregateResult struct {
-	Aggregate *longo.Aggregate
+	Aggregate *Aggregate
 }
 
 func (p *AggregateResult) One(res interface{}) error {
@@ -80,12 +79,12 @@ func (p *FindResult) Hit(res interface{}) *FindResult {
 	return p
 }
 
-func (p *Model) SetHandler(handler *longo.Mgo) *Model {
+func (p *Model) SetHandler(handler *Mgo) *Model {
 	p.Handler = handler
 	return p
 }
 
-func (p *Model) Collection() *longo.Collection {
+func (p *Model) Collection() *Collection {
 	return p.Handler.DB(p.DB).C(p.C).Context(p.Ctx)
 }
 
@@ -102,23 +101,23 @@ func (p *Model) Count(find interface{}) (int64, error) {
 	return p.Handler.DB(p.DB).C(p.C).CountDocuments(find)
 }
 
-func (p *Model) Set(filter interface{}, update interface{}) *longo.UpdateResult {
+func (p *Model) Set(filter interface{}, update interface{}) *UpdateResult {
 	return p.Handler.DB(p.DB).C(p.C).UpdateMany(filter, bson.M{"$set": update}).Context(p.Ctx).Do()
 }
 
-func (p *Model) Update(filter interface{}, update interface{}) *longo.UpdateResult {
+func (p *Model) Update(filter interface{}, update interface{}) *UpdateResult {
 	return p.Handler.DB(p.DB).C(p.C).UpdateMany(filter, update).Context(p.Ctx).Do()
 }
 
-func (p *Model) Insert(document ...interface{}) *longo.InsertManyResult {
+func (p *Model) Insert(document ...interface{}) *InsertManyResult {
 	return p.Handler.DB(p.DB).C(p.C).InsertMany(document).Context(p.Ctx).Do()
 }
 
-func (p *Model) Delete(filter interface{}) *longo.DeleteResult {
+func (p *Model) Delete(filter interface{}) *DeleteResult {
 	return p.Handler.DB(p.DB).C(p.C).DeleteMany(filter).Context(p.Ctx).Do()
 }
 
-func (p *Model) FindAndModify(filter interface{}, update interface{}) *longo.FindOneAndUpdate {
+func (p *Model) FindAndModify(filter interface{}, update interface{}) *FindOneAndUpdate {
 	return p.Handler.DB(p.DB).C(p.C).FindOneAndUpdate(filter, update).Context(p.Ctx)
 }
 

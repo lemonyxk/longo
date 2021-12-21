@@ -16,7 +16,7 @@ import (
 	"reflect"
 	"time"
 
-	longo2 "github.com/lemoyxk/longo/longo"
+	"github.com/lemoyxk/longo"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -52,9 +52,9 @@ func main() {
 func tranIsolationRepeatableOutside() {
 	var url = "mongodb://root:1354243@127.0.0.1:27017,127.0.0.1:27018,127.0.0.1:27019"
 
-	mgo, _ := longo2.NewClient().Connect(&longo2.Config{Url: url})
+	mgo, _ := longo.NewClient().Connect(&longo.Config{Url: url})
 
-	err := mgo.RawClient().Ping(nil, longo2.ReadPreference.Primary)
+	err := mgo.RawClient().Ping(nil, longo.ReadPreference.Primary)
 	if err != nil {
 		panic(err)
 	}
@@ -64,7 +64,7 @@ func tranIsolationRepeatableOutside() {
 	// 事务读取 NO CHANGE
 
 	go func() {
-		err = mgo.TransactionWithLock(func(handler *longo2.Mgo, sessionContext mongo.SessionContext) error {
+		err = mgo.TransactionWithLock(func(handler *longo.Mgo, sessionContext mongo.SessionContext) error {
 
 			var err error
 
@@ -121,9 +121,9 @@ func tranIsolationRepeatableOutside() {
 func tranIsolationRepeatable() {
 	var url = "mongodb://root:1354243@127.0.0.1:27017,127.0.0.1:27018,127.0.0.1:27019"
 
-	mgo, _ := longo2.NewClient().Connect(&longo2.Config{Url: url})
+	mgo, _ := longo.NewClient().Connect(&longo.Config{Url: url})
 
-	err := mgo.RawClient().Ping(nil, longo2.ReadPreference.Primary)
+	err := mgo.RawClient().Ping(nil, longo.ReadPreference.Primary)
 	if err != nil {
 		panic(err)
 	}
@@ -133,7 +133,7 @@ func tranIsolationRepeatable() {
 	// 事务1读取 NO CHANGE
 
 	go func() {
-		err = mgo.Transaction(func(handler *longo2.Mgo, sessionContext mongo.SessionContext) error {
+		err = mgo.Transaction(func(handler *longo.Mgo, sessionContext mongo.SessionContext) error {
 			var err error
 
 			var res1 []Test2
@@ -167,7 +167,7 @@ func tranIsolationRepeatable() {
 	go func() {
 		time.Sleep(time.Millisecond)
 
-		err = mgo.Transaction(func(handler *longo2.Mgo, sessionContext mongo.SessionContext) error {
+		err = mgo.Transaction(func(handler *longo.Mgo, sessionContext mongo.SessionContext) error {
 			var err error
 
 			var res Test2
@@ -200,9 +200,9 @@ func tranIsolationRepeatable() {
 func tranIsolationRepeatableOutsideWithWrite() {
 	var url = "mongodb://root:1354243@127.0.0.1:27017,127.0.0.1:27018,127.0.0.1:27019"
 
-	mgo, _ := longo2.NewClient().Connect(&longo2.Config{Url: url})
+	mgo, _ := longo.NewClient().Connect(&longo.Config{Url: url})
 
-	err := mgo.RawClient().Ping(nil, longo2.ReadPreference.Primary)
+	err := mgo.RawClient().Ping(nil, longo.ReadPreference.Primary)
 	if err != nil {
 		panic(err)
 	}
@@ -213,7 +213,7 @@ func tranIsolationRepeatableOutsideWithWrite() {
 
 	go func() {
 
-		err = mgo.Transaction(func(handler *longo2.Mgo, sessionContext mongo.SessionContext) error {
+		err = mgo.Transaction(func(handler *longo.Mgo, sessionContext mongo.SessionContext) error {
 
 			var err error
 
@@ -280,9 +280,9 @@ func tranIsolationRepeatableOutsideWithWrite() {
 func tranIsolationRepeatableWithWrite() {
 	var url = "mongodb://root:1354243@127.0.0.1:27017,127.0.0.1:27018,127.0.0.1:27019"
 
-	mgo, _ := longo2.NewClient().Connect(&longo2.Config{Url: url})
+	mgo, _ := longo.NewClient().Connect(&longo.Config{Url: url})
 
-	err := mgo.RawClient().Ping(nil, longo2.ReadPreference.Primary)
+	err := mgo.RawClient().Ping(nil, longo.ReadPreference.Primary)
 	if err != nil {
 		panic(err)
 	}
@@ -294,7 +294,7 @@ func tranIsolationRepeatableWithWrite() {
 	// 事务1写入 ERROR
 
 	go func() {
-		err = mgo.Transaction(func(handler *longo2.Mgo, sessionContext mongo.SessionContext) error {
+		err = mgo.Transaction(func(handler *longo.Mgo, sessionContext mongo.SessionContext) error {
 			var err error
 
 			var res Test2
@@ -325,7 +325,7 @@ func tranIsolationRepeatableWithWrite() {
 	go func() {
 		time.Sleep(time.Millisecond * 1)
 
-		err = mgo.Transaction(func(handler *longo2.Mgo, sessionContext mongo.SessionContext) error {
+		err = mgo.Transaction(func(handler *longo.Mgo, sessionContext mongo.SessionContext) error {
 			var err error
 
 			var res Test2

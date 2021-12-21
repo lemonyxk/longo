@@ -17,7 +17,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/lemoyxk/longo/model"
+	"github.com/lemoyxk/longo/cli/app"
 )
 
 func init() {
@@ -55,7 +55,7 @@ func main() {
 				return err
 			}
 
-			model.Do(dbName, collectionName, path)
+			app.Do(dbName, collectionName, path)
 
 			return err
 		})
@@ -65,7 +65,7 @@ func main() {
 		return
 	}
 
-	model.Do(dbName, collectionName, absFilePath)
+	app.Do(dbName, collectionName, absFilePath)
 
 	println("model build success")
 }

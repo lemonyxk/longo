@@ -8,7 +8,7 @@
 * @create: 2021-12-06 01:01
 **/
 
-package model
+package app
 
 import (
 	"os/exec"

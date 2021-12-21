@@ -8,10 +8,12 @@
 * @create: 2021-12-06 01:08
 **/
 
-package main
+package test
 
-import "github.com/lemoyxk/longo/model"
-import "github.com/lemoyxk/longo/longo"
+import (
+	"github.com/lemoyxk/longo/longo"
+	"github.com/lemoyxk/longo/model"
+)
 
 type Test struct {
 	MongoID int `json:"_id" bson:"_id" mapstructure:"_id"`

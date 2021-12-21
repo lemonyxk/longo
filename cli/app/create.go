@@ -8,7 +8,7 @@
 * @create: 2021-12-06 02:01
 **/
 
-package model
+package app
 
 import (
 	"embed"
