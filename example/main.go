@@ -215,25 +215,23 @@ func tranIsolationRepeatableOutsideWithWrite() {
 
 		err = mgo.Transaction(func(handler *longo.Mgo, sessionContext mongo.SessionContext) error {
 
-			var err error
+			// var res Test2
 
-			var res Test2
+			// var res1 []Test2
 
-			var res1 []Test2
-
-			var res2 []Test2
+			// var res2 []Test2
 
 			log.Println("tran start")
 
-			var test2 = mgo.DB("Test").C("test2")
+			var test2 = longo.NewModel[Test2]("Test", "test2").Context(sessionContext).SetHandler(handler)
 
-			err = test2.Find(bson.M{}).Context(sessionContext).All(&res1)
+			res1, err := test2.Find(bson.M{}).All()
 
 			log.Println("tran:", res1)
 
 			time.Sleep(time.Second * 2)
 
-			err = test2.Find(bson.M{}).Context(sessionContext).All(&res2)
+			res2, err := test2.Find(bson.M{}).All()
 
 			log.Println("tran:", res2)
 
@@ -242,10 +240,11 @@ func tranIsolationRepeatableOutsideWithWrite() {
 			}
 
 			// will get a error!!!
-			err = test2.FindOneAndUpdate(bson.M{"id": 1}, bson.M{"$inc": bson.M{"money": 1}}).Context(sessionContext).
-				ReturnDocument().Do(&res)
+			res := test2.FindOneAndUpdate(bson.M{"id": 1}, bson.M{"$inc": bson.M{"money": 1}}).ReturnDocument().Do()
 
-			log.Println("tran:", res)
+			log.Println("tran:", res.Result())
+
+			err = res.Error()
 
 			return err
 		})
@@ -311,6 +310,7 @@ func tranIsolationRepeatableWithWrite() {
 
 			time.Sleep(time.Millisecond * 2)
 
+			// will get a error!!!
 			err = test2.FindOneAndUpdate(bson.M{"id": 1}, bson.M{"$inc": bson.M{"money": 1}}).Context(sessionContext).
 				ReturnDocument().Do(&res)
 
