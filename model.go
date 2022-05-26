@@ -242,14 +242,14 @@ func (p *FindResult[T]) Projection(projection interface{}) *FindResult[T] {
 	return p
 }
 
-func (p *FindResult[T]) One() (T, error) {
+func (p *FindResult[T]) One() (*T, error) {
 	var res T
 	var err = p.Find.One(&res)
-	return res, err
+	return &res, err
 }
 
-func (p *FindResult[T]) All() ([]T, error) {
-	var res []T
+func (p *FindResult[T]) All() ([]*T, error) {
+	var res []*T
 	var err = p.Find.All(&res)
 	return res, err
 }
