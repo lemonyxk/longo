@@ -46,12 +46,12 @@ func (p *Model[T]) Context(ctx context.Context) *Model[T] {
 	return p
 }
 
-func (p *Model[T]) Find(find interface{}) *FindResult[T] {
-	return &FindResult[T]{Find: p.Handler.DB(p.DB).C(p.C).Find(find).Context(p.Ctx)}
+func (p *Model[T]) Find(filter interface{}) *FindResult[T] {
+	return &FindResult[T]{Find: p.Handler.DB(p.DB).C(p.C).Find(filter).Context(p.Ctx)}
 }
 
-func (p *Model[T]) Count(find interface{}) (int64, error) {
-	return p.Handler.DB(p.DB).C(p.C).CountDocuments(find)
+func (p *Model[T]) Count(filter interface{}) (int64, error) {
+	return p.Handler.DB(p.DB).C(p.C).CountDocuments(filter)
 }
 
 func (p *Model[T]) Set(filter interface{}, update interface{}) *UpdateResult {
@@ -62,8 +62,12 @@ func (p *Model[T]) Update(filter interface{}, update interface{}) *UpdateResult 
 	return p.Handler.DB(p.DB).C(p.C).UpdateMany(filter, update).Context(p.Ctx).Do()
 }
 
-func (p *Model[T]) Insert(document ...interface{}) *InsertManyResult {
-	return p.Handler.DB(p.DB).C(p.C).InsertMany(document).Context(p.Ctx).Do()
+func (p *Model[T]) Insert(document ...T) *InsertManyResult {
+	var docs = make([]interface{}, len(document))
+	for i := 0; i < len(docs); i++ {
+		docs[i] = document[i]
+	}
+	return p.Handler.DB(p.DB).C(p.C).InsertMany(docs).Context(p.Ctx).Do()
 }
 
 func (p *Model[T]) Delete(filter interface{}) *DeleteResult {

@@ -27,7 +27,22 @@ type Test2 struct {
 }
 
 func main() {
-	tranIsolationRepeatableOutside()
+
+	// var url = "mongodb://root:1354243@127.0.0.1:27017,127.0.0.1:27018,127.0.0.1:27019"
+	//
+	// mgo, _ := longo.NewClient().Connect(&longo.Config{Url: url})
+	//
+	// err := mgo.RawClient().Ping(nil, longo.ReadPreference.Primary)
+	// if err != nil {
+	// 	panic(err)
+	// }
+	//
+	// var test2 = longo.NewModel[Test2]("Test", "test2").SetHandler(mgo)
+	//
+	// res, err := test2.Find(bson.M{"id": 1111111111}).One()
+	// log.Println(res, err == nil)
+
+	// tranIsolationRepeatableOutside()
 	// tranIsolationRepeatable()
 	// tranIsolationRepeatableOutsideWithWrite()
 	// tranIsolationRepeatableWithWrite()
