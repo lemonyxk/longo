@@ -62,7 +62,7 @@ func (p *Model[T]) Update(filter interface{}, update interface{}) *UpdateResult 
 	return p.Handler.DB(p.DB).C(p.C).UpdateMany(filter, update).Context(p.Ctx).Do()
 }
 
-func (p *Model[T]) Insert(document ...T) *InsertManyResult {
+func (p *Model[T]) Insert(document ...*T) *InsertManyResult {
 	var docs = make([]interface{}, len(document))
 	for i := 0; i < len(docs); i++ {
 		docs[i] = document[i]
