@@ -1,4 +1,4 @@
-module github.com/lemoyxk/longo
+module github.com/lemonyxk/longo
 
 go 1.18
 

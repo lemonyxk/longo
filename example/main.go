@@ -16,7 +16,7 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/lemoyxk/longo"
+	"github.com/lemonyxk/longo"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -27,7 +27,7 @@ type Test2 struct {
 }
 
 func main() {
-	// tranIsolationRepeatableOutside()
+	tranIsolationRepeatableOutside()
 	// tranIsolationRepeatable()
 	// tranIsolationRepeatableOutsideWithWrite()
 	// tranIsolationRepeatableWithWrite()
