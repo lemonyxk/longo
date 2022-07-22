@@ -28,8 +28,8 @@ type Test2 struct {
 
 func main() {
 
-	// var url = "mongodb://root:1354243@127.0.0.1:27017,127.0.0.1:27018,127.0.0.1:27019"
-	// mgo, _ := longo.NewClient().Connect(&longo.Config{Url: url})
+	var url = "mongodb://root:1354243@127.0.0.1:27017,127.0.0.1:27018,127.0.0.1:27019"
+	mgo, _ := longo.NewClient().Connect(&longo.Config{Url: url})
 	//
 	// err := mgo.RawClient().Ping(nil, longo.ReadPreference.Primary)
 	// if err != nil {
@@ -46,9 +46,9 @@ func main() {
 	// tranIsolationRepeatableOutsideWithWrite()
 	// tranIsolationRepeatableWithWrite()
 
-	// var model = longo.NewModel[Person]("Test", "Person").SetHandler(mgo)
-	//
-	// log.Println(model.CreateIndex())
+	var model = longo.NewModel[Person]("Test", "Person").SetHandler(mgo)
+
+	log.Println(model.CreateIndex())
 }
 
 // MONGO与MYSQL的事务区别在于

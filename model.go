@@ -13,6 +13,7 @@ package longo
 import (
 	"context"
 	"reflect"
+	"strconv"
 	"strings"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -66,12 +67,12 @@ func (p *Model[T]) CreateIndex() *Model[T] {
 	for i := 0; i < n; i++ {
 		var field = srcType.Field(i)
 		var indexName = field.Tag.Get("index")
-		if indexName != "" && !mr[indexName+"_1"] {
+		if indexName != "" && !mr[indexName] {
 			index = append(index, indexName)
 		}
 
 		var indexesName = field.Tag.Get("indexes")
-		if indexesName != "" && !mr[strings.ReplaceAll(indexesName, ",", "_1_")+"_1"] {
+		if indexesName != "" && !mr[indexesName] {
 			indexes = append(indexes, indexesName)
 		}
 	}
@@ -79,8 +80,20 @@ func (p *Model[T]) CreateIndex() *Model[T] {
 	var create []mongo.IndexModel
 
 	for i := 0; i < len(index); i++ {
+		var s = strings.Split(index[i], "_")
+		if len(s) != 2 {
+			continue
+		}
+		var f = s[0]
+		if f == "" {
+			continue
+		}
+		var k, _ = strconv.Atoi(s[1])
+		if k != 1 && k != -1 {
+			continue
+		}
 		create = append(create, mongo.IndexModel{
-			Keys:    bson.M{index[i]: 1},
+			Keys:    bson.M{f: k},
 			Options: &options.IndexOptions{},
 		})
 	}
@@ -89,9 +102,21 @@ func (p *Model[T]) CreateIndex() *Model[T] {
 		var keys = bson.D{}
 		var im = mongo.IndexModel{Keys: bson.E{}, Options: &options.IndexOptions{}}
 
-		var list = strings.Split(indexes[i], ",")
-		for j := 0; j < len(list); j++ {
-			keys = append(keys, bson.E{Key: list[j], Value: 1})
+		var list = strings.Split(indexes[i], "_")
+		if len(list) == 0 || len(list)%2 != 0 {
+			continue
+		}
+
+		for j := 0; j < len(list); j += 2 {
+			var f = list[j]
+			if f == "" {
+				continue
+			}
+			var k, _ = strconv.Atoi(list[j+1])
+			if k != 1 && k != -1 {
+				continue
+			}
+			keys = append(keys, bson.E{Key: f, Value: k})
 		}
 
 		im.Keys = keys
@@ -104,7 +129,6 @@ func (p *Model[T]) CreateIndex() *Model[T] {
 	}
 
 	_, _ = p.Collection().Indexes().CreateMany(create)
-
 	return p
 }
 

@@ -11,9 +11,9 @@
 package main
 
 type Person struct {
-	Name    string `bson:"name" json:"name" `
+	Name    string `bson:"name" json:"name" index:"name_-1"`
 	Age     int    `bson:"age" json:"age" `
-	Address string `bson:"address" json:"address" `
+	Address string `bson:"address" json:"address" indexes:"address_-1_age_1"`
 	Type    string `bson:"type" json:"type" `
 	MongoID string `bson:"_id" json:"_id"`
 }
