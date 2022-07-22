@@ -66,12 +66,12 @@ func (p *Model[T]) CreateIndex() *Model[T] {
 	var n = srcType.NumField()
 	for i := 0; i < n; i++ {
 		var field = srcType.Field(i)
-		var indexName = field.Tag.Get("index")
+		var indexName = strings.ReplaceAll(field.Tag.Get("index"), ",", "_")
 		if indexName != "" && !mr[indexName] {
 			index = append(index, indexName)
 		}
 
-		var indexesName = field.Tag.Get("indexes")
+		var indexesName = strings.ReplaceAll(field.Tag.Get("indexes"), ",", "_")
 		if indexesName != "" && !mr[indexesName] {
 			indexes = append(indexes, indexesName)
 		}
