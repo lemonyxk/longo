@@ -67,12 +67,12 @@ func (p *Model[T]) CreateIndex() *Model[T] {
 	for i := 0; i < n; i++ {
 		var field = srcType.Field(i)
 		var indexName = strings.ReplaceAll(field.Tag.Get("index"), ",", "_")
-		if indexName != "" && !mr[indexName] {
+		if indexName != "" && !mr[strings.ReplaceAll(indexName, "_unique", "")] {
 			index = append(index, indexName)
 		}
 
 		var indexesName = strings.ReplaceAll(field.Tag.Get("indexes"), ",", "_")
-		if indexesName != "" && !mr[indexesName] {
+		if indexesName != "" && !mr[strings.ReplaceAll(indexesName, "_unique", "")] {
 			indexes = append(indexes, indexesName)
 		}
 	}
@@ -80,6 +80,13 @@ func (p *Model[T]) CreateIndex() *Model[T] {
 	var create []mongo.IndexModel
 
 	for i := 0; i < len(index); i++ {
+
+		var isUnique = false
+		if strings.HasSuffix(index[i], "_unique") {
+			index[i] = strings.ReplaceAll(index[i], "_unique", "")
+			isUnique = true
+		}
+
 		var s = strings.Split(index[i], "_")
 		if len(s) != 2 {
 			continue
@@ -94,13 +101,20 @@ func (p *Model[T]) CreateIndex() *Model[T] {
 		}
 		create = append(create, mongo.IndexModel{
 			Keys:    bson.M{f: k},
-			Options: &options.IndexOptions{},
+			Options: &options.IndexOptions{Unique: &isUnique},
 		})
 	}
 
 	for i := 0; i < len(indexes); i++ {
+
+		var isUnique = false
+		if strings.HasSuffix(indexes[i], "_unique") {
+			indexes[i] = strings.ReplaceAll(indexes[i], "_unique", "")
+			isUnique = true
+		}
+
 		var keys = bson.D{}
-		var im = mongo.IndexModel{Keys: bson.E{}, Options: &options.IndexOptions{}}
+		var im = mongo.IndexModel{Keys: bson.E{}, Options: &options.IndexOptions{Unique: &isUnique}}
 
 		var list = strings.Split(indexes[i], "_")
 		if len(list) == 0 || len(list)%2 != 0 {
