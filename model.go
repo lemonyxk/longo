@@ -12,8 +12,11 @@ package longo
 
 import (
 	"context"
+	"reflect"
+	"strings"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
@@ -27,6 +30,7 @@ func NewModel[T any](db, collection string) *Model[T] {
 // Model is a mongodb model
 type Model[T any] struct {
 	Handler *Mgo
+	M       T
 	DB      string
 	C       string
 	Ctx     context.Context
@@ -34,6 +38,73 @@ type Model[T any] struct {
 
 func (p *Model[T]) SetHandler(handler *Mgo) *Model[T] {
 	p.Handler = handler
+	return p
+}
+
+func (p *Model[T]) CreateIndex() *Model[T] {
+	var srcType = reflect.TypeOf(p.M)
+	if srcType.Kind() != reflect.Struct {
+		panic("model must be struct")
+	}
+
+	// get all indexes of the model
+	var result []Index
+	_ = p.Collection().Indexes().List().All(context.Background(), &result)
+
+	// ignore _id index
+	var mr = make(map[string]bool)
+	for i := 0; i < len(result); i++ {
+		var n = result[i].Name
+		if n != "_id_" {
+			mr[n] = true
+		}
+	}
+
+	var index []string
+	var indexes []string
+	var n = srcType.NumField()
+	for i := 0; i < n; i++ {
+		var field = srcType.Field(i)
+		var indexName = field.Tag.Get("index")
+		if indexName != "" && !mr[indexName+"_1"] {
+			index = append(index, indexName)
+		}
+
+		var indexesName = field.Tag.Get("indexes")
+		if indexesName != "" && !mr[strings.ReplaceAll(indexesName, ",", "_1_")+"_1"] {
+			indexes = append(indexes, indexesName)
+		}
+	}
+
+	var create []mongo.IndexModel
+
+	for i := 0; i < len(index); i++ {
+		create = append(create, mongo.IndexModel{
+			Keys:    bson.M{index[i]: 1},
+			Options: &options.IndexOptions{},
+		})
+	}
+
+	for i := 0; i < len(indexes); i++ {
+		var keys = bson.D{}
+		var im = mongo.IndexModel{Keys: bson.E{}, Options: &options.IndexOptions{}}
+
+		var list = strings.Split(indexes[i], ",")
+		for j := 0; j < len(list); j++ {
+			keys = append(keys, bson.E{Key: list[j], Value: 1})
+		}
+
+		im.Keys = keys
+
+		create = append(create, im)
+	}
+
+	if len(create) == 0 {
+		return p
+	}
+
+	_, _ = p.Collection().Indexes().CreateMany(create)
+
 	return p
 }
 
