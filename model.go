@@ -13,11 +13,9 @@ package longo
 import (
 	"context"
 	"reflect"
-	"strconv"
 	"strings"
 
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
@@ -66,81 +64,25 @@ func (p *Model[T]) CreateIndex() *Model[T] {
 	var n = srcType.NumField()
 	for i := 0; i < n; i++ {
 		var field = srcType.Field(i)
-		var indexName = strings.ReplaceAll(field.Tag.Get("index"), ",", "_")
-		if indexName != "" && !mr[strings.ReplaceAll(indexName, "_unique", "")] {
-			index = append(index, field.Tag.Get("index"))
+		var indexName = field.Tag.Get("index")
+		var indexNameArr = strings.Split(indexName, ",")
+		if indexName != "" && len(indexNameArr) > 0 && !inMapArray(mr, indexNameArr) {
+			index = append(index, indexName)
 		}
 
-		var indexesName = strings.ReplaceAll(field.Tag.Get("indexes"), ",", "_")
-		if indexesName != "" && !mr[strings.ReplaceAll(indexesName, "_unique", "")] {
-			indexes = append(indexes, field.Tag.Get("indexes"))
+		var indexesName = field.Tag.Get("indexes")
+		var indexesNameArr = strings.Split(indexesName, ",")
+		if indexesName != "" && len(indexesNameArr) > 0 && !inMapArray(mr, indexesNameArr) {
+			indexes = append(indexes, indexesName)
 		}
 	}
 
-	var create []mongo.IndexModel
-
-	for i := 0; i < len(index); i++ {
-		var isUnique = false
-		if strings.HasSuffix(index[i], ",unique") {
-			index[i] = strings.ReplaceAll(index[i], ",unique", "")
-			isUnique = true
-		}
-
-		var s = strings.Split(index[i], ",")
-		if len(s) != 2 {
-			continue
-		}
-		var f = s[0]
-		if f == "" {
-			continue
-		}
-		var k, _ = strconv.Atoi(s[1])
-		if k != 1 && k != -1 {
-			continue
-		}
-		create = append(create, mongo.IndexModel{
-			Keys:    bson.M{f: k},
-			Options: &options.IndexOptions{Unique: &isUnique},
-		})
+	var create = parseIndex(index)
+	create = append(create, parseIndexes(indexes)...)
+	if len(create) > 0 {
+		_, _ = p.Collection().Indexes().CreateMany(create)
 	}
 
-	for i := 0; i < len(indexes); i++ {
-		var isUnique = false
-		if strings.HasSuffix(indexes[i], ",unique") {
-			indexes[i] = strings.ReplaceAll(indexes[i], ",unique", "")
-			isUnique = true
-		}
-
-		var keys = bson.D{}
-		var im = mongo.IndexModel{Keys: bson.E{}, Options: &options.IndexOptions{Unique: &isUnique}}
-
-		var list = strings.Split(indexes[i], ",")
-		if len(list) == 0 || len(list)%2 != 0 {
-			continue
-		}
-
-		for j := 0; j < len(list); j += 2 {
-			var f = list[j]
-			if f == "" {
-				continue
-			}
-			var k, _ = strconv.Atoi(list[j+1])
-			if k != 1 && k != -1 {
-				continue
-			}
-			keys = append(keys, bson.E{Key: f, Value: k})
-		}
-
-		im.Keys = keys
-
-		create = append(create, im)
-	}
-
-	if len(create) == 0 {
-		return p
-	}
-
-	_, _ = p.Collection().Indexes().CreateMany(create)
 	return p
 }
 

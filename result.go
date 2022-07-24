@@ -23,8 +23,3 @@ func (p Result[T]) Result() T {
 func (p Result[T]) Error() error {
 	return p.err
 }
-
-type Index struct {
-	Name string         `bson:"name"`
-	Key  map[string]int `bson:"key"`
-}
