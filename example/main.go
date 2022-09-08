@@ -212,9 +212,12 @@ func tranIsolationRepeatable() {
 // 非事务可重复读再写
 // 即外界非事务改变不会干扰事务中的读取之后再写入
 // MONGO:事务查询之后外界有写入,此时如果事务继续写,则会返回错误
-//      如果外界后写入则会等待事务完成
+//
+//	如果外界后写入则会等待事务完成
+//
 // MYSQL:事务查询之后外界有写入,此时如果事务继续写,则需要自己使用悲观锁(for update)或者乐观锁(update check)来解决外界非事务更改
-//      如果外界后写入则会等待事务完成
+//
+//	如果外界后写入则会等待事务完成
 func tranIsolationRepeatableOutsideWithWrite() {
 	var url = "mongodb://root:1354243@127.0.0.1:27017,127.0.0.1:27018,127.0.0.1:27019"
 
@@ -290,9 +293,13 @@ func tranIsolationRepeatableOutsideWithWrite() {
 // 验证MONGO事务隔离性
 // 事务可重复读再写
 // MONGO:事务查询之后其他事务有写入,此时如果事务继续写,则会返回错误
-//      如果其他事务后写入提交则会等待事务完成
+//
+//	如果其他事务后写入提交则会等待事务完成
+//
 // MYSQL:事务查询之后其他事务有写入并提交,此时如果该事务继续写,则需要自己使用悲观锁(for update)或者乐观锁(update check)来解决外界事务更改
-//      如果其他事务后写入提交则会等待该事务完成
+//
+//	如果其他事务后写入提交则会等待该事务完成
+//
 // maxTransactionLockRequestTimeoutMillis 事务之间等待锁最长5MS
 func tranIsolationRepeatableWithWrite() {
 	var url = "mongodb://root:1354243@127.0.0.1:27017,127.0.0.1:27018,127.0.0.1:27019"
