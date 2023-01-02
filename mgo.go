@@ -36,6 +36,10 @@ func (m *Mgo) DB(db string) *DB {
 	return &DB{client: m.client, db: db, config: m.config}
 }
 
+func (m *Mgo) Bucket(db string) *Bucket {
+	return &Bucket{client: m.client, db: db, config: m.config, mgo: m}
+}
+
 // TransactionWithLock one by one
 func (m *Mgo) TransactionWithLock(fn func(handler *Mgo, sessionContext mongo.SessionContext) error, opts ...*options.TransactionOptions) error {
 	m.mux.Lock()

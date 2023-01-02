@@ -30,6 +30,7 @@ func main() {
 
 	var url = "mongodb://root:1354243@127.0.0.1:27017,127.0.0.1:27018,127.0.0.1:27019"
 	mgo, _ := longo.NewClient().Connect(&longo.Config{Url: url})
+
 	//
 	// err := mgo.RawClient().Ping(nil, longo.ReadPreference.Primary)
 	// if err != nil {
@@ -39,16 +40,96 @@ func main() {
 	// var test2 = longo.NewModel[Test2]("Test", "test2").SetHandler(mgo)
 	//
 	// res, err := test2.Find(bson.M{"id": 1111111111}).One()
-	// log.Println(res, err == nil)
+	// log.Println(res, err)
 
 	// tranIsolationRepeatableOutside()
 	// tranIsolationRepeatable()
 	// tranIsolationRepeatableOutsideWithWrite()
 	// tranIsolationRepeatableWithWrite()
 
-	var model = longo.NewModel[Person]("Test", "Person").SetHandler(mgo)
+	// var model = longo.NewModel[Person]("Test", "Person").SetHandler(mgo)
+	//
+	// log.Println(model.CreateIndex())
 
-	log.Println(model.CreateIndex())
+	// bucket, err := gridfs.NewBucket(mgo.RawClient().Database("test1"))
+	// if err != nil {
+	// 	panic(err)
+	// }
+
+	// stream, err := bucket.OpenUploadStreamWithID("abc1", "ok", &options.UploadOptions{Metadata: bson.M{"uuid": 111}})
+	// if err != nil {
+	// 	panic(err)
+	// }
+	//
+	// defer stream.Close()
+	//
+	// var f, _ = os.Open("client.go")
+	// if err != nil {
+	// 	panic(err)
+	// }
+	//
+	// defer f.Close()
+	//
+	// io.Copy(stream, f)
+
+	// var buf bytes.Buffer
+	// dStream, err := bucket.DownloadToStream(`ok`, &buf)
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+	// fmt.Printf("File size to download: %v\n", dStream)
+	// fmt.Println(buf.String())
+
+	// var a, _ = primitive.ObjectIDFromHex("63b1451d7f733ad2c0be5db9")
+	// bucket.Delete(a)
+
+	// var a = bucket.GetFilesCollection().FindOne(context.Background(), bson.M{"metadata.uuid": 1111})
+	// var r bson.M
+	// a.Decode(&r)
+	// log.Println(r)
+
+	// mgo.Bucket("test1").New()
+
+	// var b,_ = mgo.Bucket("test1").New()
+	// b.Delete("abc")
+	// b.Delete("abc1")
+	// b.Delete("heihei")
+
+	// var files,err = mgo.Bucket("test1").NewFilesModel().Find(bson.M{}).All()
+	// if err != nil {
+	// 	panic(err)
+	// }
+	//
+	// for i := 0; i < len(files); i++ {
+	// 	log.Printf("%+v\n",files[i])
+	// }
+	//
+	// var id, _ = primitive.ObjectIDFromHex("63b26ff1ff871ccb3807d7d3")
+	// chunks, err := mgo.Bucket("test1").NewChunksModel().FindByID(id)
+	// if err != nil {
+	// 	panic(err)
+	// }
+	//
+	// log.Printf("%+v\n", string(chunks.Data))
+
+	// var id, _ = primitive.ObjectIDFromHex("63b13ca965c4b836937d5620")
+	// var b,_ = mgo.Bucket("test1").New()
+	// var a,_ = b.Find(bson.M{"_id":id})
+
+	// var home, _ = os.UserHomeDir()
+	// var f, err = os.OpenFile(filepath.Join(home, "a.test"), os.O_TRUNC|os.O_CREATE|os.O_RDWR, 0755)
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// log.Println(filepath.Join(home, "a.test"))
+	// var buf = &bytes.Buffer{}
+	// mgo.Bucket("test1").DownloadFile(id).Read(f)
+	// log.Println(buf.String())
+
+	var a, _ = mgo.Bucket("test1").NewFilesModel().Find(bson.M{}).All()
+	for i := 0; i < len(a); i++ {
+		log.Printf("%+v\n", a[i])
+	}
 }
 
 // MONGO与MYSQL的事务区别在于

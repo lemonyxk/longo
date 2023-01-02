@@ -13,6 +13,7 @@ package longo
 import (
 	"context"
 
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -98,6 +99,10 @@ func (q *Collection) Find(filter interface{}) *Find {
 
 func (q *Collection) FindOne(filter interface{}) *FindOne {
 	return NewFindOne(q.context, q.client.Database(q.db).Collection(q.collection), filter)
+}
+
+func (q *Collection) FindByID(id interface{}) *FindOne {
+	return NewFindOne(q.context, q.client.Database(q.db).Collection(q.collection), bson.M{"_id": id})
 }
 
 func (q *Collection) FindOneAndDelete(filter interface{}) *FindOneAndDelete {

@@ -12,6 +12,7 @@ package longo
 
 import (
 	"context"
+	"io"
 
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -37,5 +38,9 @@ func (ag *MultiResult) One(sessionContext context.Context, result interface{}) e
 		return ag.err
 	}
 	ag.cursor.Next(sessionContext)
-	return ag.cursor.Decode(result)
+	var err = ag.cursor.Decode(result)
+	if err == io.EOF {
+		err = nil
+	}
+	return err
 }

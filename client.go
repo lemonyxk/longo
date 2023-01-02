@@ -50,9 +50,11 @@ func (c *Client) SetUrl(url string) {
 
 func (c *Client) init(config *Config) {
 
-	if config != nil {
-		c.config = *config
+	if config == nil {
+		return
 	}
+
+	c.config = *config
 
 	if c.config.Url == "" {
 		if len(c.config.Hosts) == 0 {
@@ -83,7 +85,7 @@ func (c *Client) init(config *Config) {
 	}
 }
 
-func (c *Client) Connect(config *Config) (*Mgo, error) {
+func (c *Client) Connect(config *Config, opts ...*options.ClientOptions) (*Mgo, error) {
 
 	if config == nil {
 		config = &Config{}
@@ -97,14 +99,18 @@ func (c *Client) Connect(config *Config) (*Mgo, error) {
 		option.SetRegistry(config.Register.Build())
 	}
 
-	client, err := mongo.Connect(context.Background(), option, &options.ClientOptions{
+	opts = append(opts, option)
+
+	opts = append(opts, &options.ClientOptions{
 		ReadPreference:         c.config.ReadPreference,                 // default is Primary
 		ReadConcern:            c.config.ReadConcern,                    // default is local
-		WriteConcern:           NewWriteConcern(*c.config.WriteConcern), // default is w:1 j:false wTimeout:when w > 1
+		WriteConcern:           NewWriteConcern(*c.config.WriteConcern), // default is w:-1 j:false wTimeout:when w > 1
 		ConnectTimeout:         &c.config.ConnectTimeout,
 		SocketTimeout:          &c.config.ConnectTimeout,
 		ServerSelectionTimeout: &c.config.ConnectTimeout,
 	})
+
+	client, err := mongo.Connect(context.Background(), opts...)
 
 	if err != nil {
 		return nil, err

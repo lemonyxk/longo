@@ -99,8 +99,12 @@ func (p *Model[T]) Find(filter interface{}) *FindResult[T] {
 	return &FindResult[T]{Find: p.Handler.DB(p.DB).C(p.C).Find(filter).Context(p.Ctx)}
 }
 
-func (p *Model[T]) Count(filter interface{}) (int64, error) {
-	return p.Handler.DB(p.DB).C(p.C).CountDocuments(filter)
+func (p *Model[T]) FindByID(id interface{}) (*T, error) {
+	return (&FindResult[T]{Find: p.Handler.DB(p.DB).C(p.C).Find(bson.M{"_id": id}).Context(p.Ctx)}).One()
+}
+
+func (p *Model[T]) Count(filter interface{}, opts ...*options.CountOptions) (int64, error) {
+	return p.Handler.DB(p.DB).C(p.C).CountDocuments(filter, opts...)
 }
 
 func (p *Model[T]) Set(filter interface{}, update interface{}) *UpdateResult {

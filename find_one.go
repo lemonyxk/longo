@@ -22,6 +22,7 @@ type FindOne struct {
 	option         *options.FindOneOptions
 	filter         interface{}
 	sessionContext context.Context
+	err            error
 }
 
 func NewFindOne(ctx context.Context, collection *mongo.Collection, filter interface{}) *FindOne {
@@ -59,6 +60,9 @@ func (f *FindOne) Option(opt *options.FindOneOptions) *FindOne {
 }
 
 func (f *FindOne) Do(result interface{}) error {
+	if f.err != nil {
+		return f.err
+	}
 	var res = &SingleResult{singleResult: f.collection.FindOne(f.sessionContext, f.filter, f.option)}
 	return res.Do(result)
 }

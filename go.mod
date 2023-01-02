@@ -1,8 +1,8 @@
 module github.com/lemonyxk/longo
 
-go 1.18
+go 1.19
 
-require go.mongodb.org/mongo-driver v1.10.2
+require go.mongodb.org/mongo-driver v1.11.1
 
 require (
 	github.com/golang/snappy v0.0.1 // indirect

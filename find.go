@@ -22,6 +22,7 @@ type Find struct {
 	option         *options.FindOptions
 	filter         interface{}
 	sessionContext context.Context
+	err            error
 }
 
 func NewFind(ctx context.Context, collection *mongo.Collection, filter interface{}) *Find {
@@ -63,17 +64,23 @@ func (f *Find) Option(opt *options.FindOptions) *Find {
 	return f
 }
 
-func (f *Find) Count() (int64, error) {
-	return f.collection.CountDocuments(f.sessionContext, f.filter, &options.CountOptions{Hint: f.option.Hint})
+func (f *Find) Count(opts ...*options.CountOptions) (int64, error) {
+	return f.collection.CountDocuments(f.sessionContext, f.filter, opts...)
 }
 
 func (f *Find) All(result interface{}) error {
+	if f.err != nil {
+		return f.err
+	}
 	cursor, err := f.collection.Find(f.sessionContext, f.filter, f.option)
 	var res = &MultiResult{cursor: cursor, err: err}
 	return res.All(f.sessionContext, result)
 }
 
 func (f *Find) One(result interface{}) error {
+	if f.err != nil {
+		return f.err
+	}
 	cursor, err := f.collection.Find(f.sessionContext, f.filter, f.option)
 	var res = &MultiResult{cursor: cursor, err: err}
 	return res.One(f.sessionContext, result)
