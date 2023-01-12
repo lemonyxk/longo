@@ -28,7 +28,7 @@ type UploadFile struct {
 }
 
 func NewUploadFile(dataBase *mongo.Database, id primitive.ObjectID, fileName string) *UploadFile {
-	return &UploadFile{fileName: fileName, dataBase: dataBase, id: id}
+	return &UploadFile{fileName: fileName, dataBase: dataBase, option: &options.UploadOptions{}, id: id}
 }
 
 func (u *UploadFile) MetaData(metadata interface{}) *UploadFile {
