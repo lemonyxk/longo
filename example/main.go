@@ -30,14 +30,25 @@ func main() {
 
 	var url = "mongodb://root:1354243@127.0.0.1:27017,127.0.0.1:27018,127.0.0.1:27019"
 	mgo, _ := longo.NewClient().Connect(&longo.Config{Url: url})
-
+	_ = mgo
 	//
 	// err := mgo.RawClient().Ping(nil, longo.ReadPreference.Primary)
 	// if err != nil {
 	// 	panic(err)
 	// }
 	//
-	// var test2 = longo.NewModel[Test2]("Test", "test2").SetHandler(mgo)
+
+	var test2 = longo.NewModel[Test2]("Test", "test2").SetHandler(mgo)
+	test2.FindOneAndUpdate(bson.M{"_id": 999}, bson.M{"$setOnInsert": bson.M{"xixi": 111}, "$inc": bson.M{"a": 1}}).Upsert().Do()
+
+	// mgo.TransactionWithLock(func(handler *longo.Mgo, sessionContext mongo.SessionContext) error {
+	// 	var test2 = longo.NewModel[Test2]("Test", "test2").Context(sessionContext).SetHandler(mgo)
+	// 	var res = test2.FindOneAndUpdate(bson.M{"id": 2}, bson.M{"$inc": bson.M{"money": 1}}).Upsert().ReturnDocument().Do()
+	// 	log.Println(res)
+	// 	return nil
+	// 	return errors.New("1")
+	// })
+
 	//
 	// res, err := test2.Find(bson.M{"id": 1111111111}).One()
 	// log.Println(res, err)
@@ -126,10 +137,10 @@ func main() {
 	// mgo.Bucket("test1").DownloadFile(id).Read(f)
 	// log.Println(buf.String())
 
-	var a, _ = mgo.Bucket("test1").NewFilesModel().Find(bson.M{}).All()
-	for i := 0; i < len(a); i++ {
-		log.Printf("%+v\n", a[i])
-	}
+	// var a, _ = mgo.Bucket("test1").NewFilesModel().Find(bson.M{}).All()
+	// for i := 0; i < len(a); i++ {
+	// 	log.Printf("%+v\n", a[i])
+	// }
 }
 
 // MONGO与MYSQL的事务区别在于

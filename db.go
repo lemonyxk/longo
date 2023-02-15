@@ -18,19 +18,20 @@ import (
 )
 
 type DB struct {
-	client *mongo.Client
-	config Config
-	db     string
+	client          *mongo.Client
+	config          Config
+	db              string
+	databaseOptions []*options.DatabaseOptions
 }
 
-func (db *DB) C(collection string) *Collection {
-	return &Collection{client: db.client, db: db.db, config: db.config, collection: collection}
+func (db *DB) C(collection string, opt ...*options.CollectionOptions) *Collection {
+	return &Collection{client: db.client, db: db.db, config: db.config, collection: collection, collectionOptions: opt, databaseOptions: db.databaseOptions}
 }
 
 func (db *DB) Drop() error {
-	return db.client.Database(db.db).Drop(context.Background())
+	return db.client.Database(db.db, db.databaseOptions...).Drop(context.Background())
 }
 
-func (db *DB) RunCommand(command interface{}) *Command {
-	return &Command{db: db.client.Database(db.db), command: command, option: &options.RunCmdOptions{}}
+func (db *DB) RunCommand(command interface{}, opt ...*options.RunCmdOptions) *Command {
+	return &Command{db: db.client.Database(db.db, db.databaseOptions...), command: command, option: opt}
 }

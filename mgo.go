@@ -32,8 +32,8 @@ func (m *Mgo) Ping() error {
 	return m.client.Ping(context.Background(), ReadPreference.Primary)
 }
 
-func (m *Mgo) DB(db string) *DB {
-	return &DB{client: m.client, db: db, config: m.config}
+func (m *Mgo) DB(db string, opt ...*options.DatabaseOptions) *DB {
+	return &DB{client: m.client, db: db, config: m.config, databaseOptions: opt}
 }
 
 func (m *Mgo) Bucket(db string) *Bucket {

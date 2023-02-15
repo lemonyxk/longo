@@ -19,18 +19,18 @@ import (
 
 type Command struct {
 	command interface{}
-	option  *options.RunCmdOptions
+	option  []*options.RunCmdOptions
 	db      *mongo.Database
 }
 
 func (c *Command) All(result interface{}) error {
-	cursor, err := c.db.RunCommandCursor(context.Background(), c.command, c.option)
+	cursor, err := c.db.RunCommandCursor(context.Background(), c.command, c.option...)
 	var res = &MultiResult{cursor: cursor, err: err}
 	return res.All(context.Background(), result)
 }
 
 func (c *Command) One(result interface{}) error {
-	cursor, err := c.db.RunCommandCursor(context.Background(), c.command, c.option)
+	cursor, err := c.db.RunCommandCursor(context.Background(), c.command, c.option...)
 	var res = &MultiResult{cursor: cursor, err: err}
 	return res.One(context.Background(), result)
 }

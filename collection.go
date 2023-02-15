@@ -41,44 +41,46 @@ import (
 // wTimeout
 
 type Collection struct {
-	client     *mongo.Client
-	config     Config
-	db         string
-	collection string
-	context    context.Context
+	client            *mongo.Client
+	config            Config
+	db                string
+	collection        string
+	context           context.Context
+	collectionOptions []*options.CollectionOptions
+	databaseOptions   []*options.DatabaseOptions
 }
 
-func (q *Collection) Clone(opts ...*options.CollectionOptions) (*mongo.Collection, error) {
-	return q.client.Database(q.db).Collection(q.collection).Clone(opts...)
+func (q *Collection) Clone() (*mongo.Collection, error) {
+	return q.client.Database(q.db, q.databaseOptions...).Collection(q.collection, q.collectionOptions...).Clone()
 }
 
 func (q *Collection) Name() string {
-	return q.client.Database(q.db).Collection(q.collection).Name()
+	return q.client.Database(q.db, q.databaseOptions...).Collection(q.collection, q.collectionOptions...).Name()
 }
 
 func (q *Collection) Drop() error {
-	return q.client.Database(q.db).Collection(q.collection).Drop(context.Background())
+	return q.client.Database(q.db, q.databaseOptions...).Collection(q.collection, q.collectionOptions...).Drop(context.Background())
 }
 
 func (q *Collection) CountDocuments(filter interface{}, opts ...*options.CountOptions) (int64, error) {
-	return q.client.Database(q.db).Collection(q.collection).CountDocuments(context.Background(), filter, opts...)
+	return q.client.Database(q.db, q.databaseOptions...).Collection(q.collection, q.collectionOptions...).CountDocuments(context.Background(), filter, opts...)
 }
 
 func (q *Collection) EstimatedDocumentCount(opts ...*options.EstimatedDocumentCountOptions) (int64, error) {
-	return q.client.Database(q.db).Collection(q.collection).EstimatedDocumentCount(context.Background(), opts...)
+	return q.client.Database(q.db, q.databaseOptions...).Collection(q.collection, q.collectionOptions...).EstimatedDocumentCount(context.Background(), opts...)
 }
 
 func (q *Collection) Distinct(fieldName string, filter interface{}, opts ...*options.DistinctOptions) ([]interface{}, error) {
-	return q.client.Database(q.db).Collection(q.collection).Distinct(context.Background(), fieldName, filter, opts...)
+	return q.client.Database(q.db, q.databaseOptions...).Collection(q.collection, q.collectionOptions...).Distinct(context.Background(), fieldName, filter, opts...)
 }
 
 func (q *Collection) Watch(pipeline interface{}, opts ...*options.ChangeStreamOptions) *ChangeStreamResult {
-	res, err := q.client.Database(q.db).Collection(q.collection).Watch(context.Background(), pipeline, opts...)
+	res, err := q.client.Database(q.db, q.databaseOptions...).Collection(q.collection, q.collectionOptions...).Watch(context.Background(), pipeline, opts...)
 	return &ChangeStreamResult{changeStream: res, err: err}
 }
 
 func (q *Collection) Indexes() *IndexView {
-	return &IndexView{view: q.client.Database(q.db).Collection(q.collection).Indexes()}
+	return &IndexView{view: q.client.Database(q.db, q.databaseOptions...).Collection(q.collection, q.collectionOptions...).Indexes()}
 }
 
 // Context
@@ -90,59 +92,59 @@ func (q *Collection) Context(ctx context.Context) *Collection {
 }
 
 func (q *Collection) Aggregate(pipeline interface{}) *Aggregate {
-	return NewAggregate(q.context, q.client.Database(q.db).Collection(q.collection), pipeline)
+	return NewAggregate(q.context, q.client.Database(q.db, q.databaseOptions...).Collection(q.collection, q.collectionOptions...), pipeline)
 }
 
 func (q *Collection) Find(filter interface{}) *Find {
-	return NewFind(q.context, q.client.Database(q.db).Collection(q.collection), filter)
+	return NewFind(q.context, q.client.Database(q.db, q.databaseOptions...).Collection(q.collection, q.collectionOptions...), filter)
 }
 
 func (q *Collection) FindOne(filter interface{}) *FindOne {
-	return NewFindOne(q.context, q.client.Database(q.db).Collection(q.collection), filter)
+	return NewFindOne(q.context, q.client.Database(q.db, q.databaseOptions...).Collection(q.collection, q.collectionOptions...), filter)
 }
 
 func (q *Collection) FindByID(id interface{}) *FindOne {
-	return NewFindOne(q.context, q.client.Database(q.db).Collection(q.collection), bson.M{"_id": id})
+	return NewFindOne(q.context, q.client.Database(q.db, q.databaseOptions...).Collection(q.collection, q.collectionOptions...), bson.M{"_id": id})
 }
 
 func (q *Collection) FindOneAndDelete(filter interface{}) *FindOneAndDelete {
-	return NewFindOneAndDelete(q.context, q.client.Database(q.db).Collection(q.collection), filter)
+	return NewFindOneAndDelete(q.context, q.client.Database(q.db, q.databaseOptions...).Collection(q.collection, q.collectionOptions...), filter)
 }
 
 func (q *Collection) FindOneAndReplace(filter interface{}, replacement interface{}) *FindOneAndReplace {
-	return NewFindOneAndReplace(q.context, q.client.Database(q.db).Collection(q.collection), filter, replacement)
+	return NewFindOneAndReplace(q.context, q.client.Database(q.db, q.databaseOptions...).Collection(q.collection, q.collectionOptions...), filter, replacement)
 }
 
 func (q *Collection) FindOneAndUpdate(filter interface{}, update interface{}) *FindOneAndUpdate {
-	return NewFindOneAndUpdate(q.context, q.client.Database(q.db).Collection(q.collection), filter, update)
+	return NewFindOneAndUpdate(q.context, q.client.Database(q.db, q.databaseOptions...).Collection(q.collection, q.collectionOptions...), filter, update)
 }
 
 // InsertOne
 // INSERT
 func (q *Collection) InsertOne(document interface{}) *InsertOne {
-	return NewInsertOne(q.context, q.client.Database(q.db).Collection(q.collection), document)
+	return NewInsertOne(q.context, q.client.Database(q.db, q.databaseOptions...).Collection(q.collection, q.collectionOptions...), document)
 }
 
 func (q *Collection) InsertMany(document []interface{}) *InsertMany {
-	return NewInsertMany(q.context, q.client.Database(q.db).Collection(q.collection), document)
+	return NewInsertMany(q.context, q.client.Database(q.db, q.databaseOptions...).Collection(q.collection, q.collectionOptions...), document)
 }
 
 func (q *Collection) DeleteOne(filter interface{}) *DeleteOne {
-	return NewDeleteOne(q.context, q.client.Database(q.db).Collection(q.collection), filter)
+	return NewDeleteOne(q.context, q.client.Database(q.db, q.databaseOptions...).Collection(q.collection, q.collectionOptions...), filter)
 }
 
 func (q *Collection) DeleteMany(filter interface{}) *DeleteMany {
-	return NewDeleteMany(q.context, q.client.Database(q.db).Collection(q.collection), filter)
+	return NewDeleteMany(q.context, q.client.Database(q.db, q.databaseOptions...).Collection(q.collection, q.collectionOptions...), filter)
 }
 
 func (q *Collection) UpdateOne(filter interface{}, update interface{}) *UpdateOne {
-	return NewUpdateOne(q.context, q.client.Database(q.db).Collection(q.collection), filter, update)
+	return NewUpdateOne(q.context, q.client.Database(q.db, q.databaseOptions...).Collection(q.collection, q.collectionOptions...), filter, update)
 }
 
 func (q *Collection) UpdateMany(filter interface{}, update interface{}) *UpdateMany {
-	return NewUpdateMany(q.context, q.client.Database(q.db).Collection(q.collection), filter, update)
+	return NewUpdateMany(q.context, q.client.Database(q.db, q.databaseOptions...).Collection(q.collection, q.collectionOptions...), filter, update)
 }
 
 func (q *Collection) ReplaceOne(filter interface{}, update interface{}) *ReplaceOne {
-	return NewReplaceOne(q.context, q.client.Database(q.db).Collection(q.collection), filter, update)
+	return NewReplaceOne(q.context, q.client.Database(q.db, q.databaseOptions...).Collection(q.collection, q.collectionOptions...), filter, update)
 }
