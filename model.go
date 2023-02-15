@@ -19,20 +19,35 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func NewModel[T any](db, collection string) *Model[T] {
+func NewModel[T any](db string, opt ...*options.DatabaseOptions) *DBModel[T] {
+	return &DBModel[T]{
+		DB:              db,
+		databaseOptions: opt,
+	}
+}
+
+type DBModel[T any] struct {
+	DB              string
+	databaseOptions []*options.DatabaseOptions
+}
+
+func (p *DBModel[T]) C(collection string, opt ...*options.CollectionOptions) *Model[T] {
 	return &Model[T]{
-		DB: db,
-		C:  collection,
+		DB:                p.DB,
+		C:                 collection,
+		databaseOptions:   p.databaseOptions,
+		collectionOptions: opt,
 	}
 }
 
 // Model is a mongodb model
 type Model[T any] struct {
-	Handler *Mgo
-	M       T
-	DB      string
-	C       string
-	Ctx     context.Context
+	Handler           *Mgo
+	DB                string
+	C                 string
+	Ctx               context.Context
+	databaseOptions   []*options.DatabaseOptions
+	collectionOptions []*options.CollectionOptions
 }
 
 func (p *Model[T]) SetHandler(handler *Mgo) *Model[T] {
@@ -41,7 +56,8 @@ func (p *Model[T]) SetHandler(handler *Mgo) *Model[T] {
 }
 
 func (p *Model[T]) CreateIndex() *Model[T] {
-	var srcType = reflect.TypeOf(p.M)
+	var t T
+	var srcType = reflect.TypeOf(t)
 	if srcType.Kind() != reflect.Struct {
 		panic("model must be struct")
 	}
@@ -87,7 +103,7 @@ func (p *Model[T]) CreateIndex() *Model[T] {
 }
 
 func (p *Model[T]) Collection() *Collection {
-	return p.Handler.DB(p.DB).C(p.C).Context(p.Ctx)
+	return p.Handler.DB(p.DB, p.databaseOptions...).C(p.C, p.collectionOptions...).Context(p.Ctx)
 }
 
 func (p *Model[T]) Context(ctx context.Context) *Model[T] {
@@ -96,23 +112,23 @@ func (p *Model[T]) Context(ctx context.Context) *Model[T] {
 }
 
 func (p *Model[T]) Find(filter interface{}) *FindResult[T] {
-	return &FindResult[T]{Find: p.Handler.DB(p.DB).C(p.C).Find(filter).Context(p.Ctx)}
+	return &FindResult[T]{Find: p.Handler.DB(p.DB, p.databaseOptions...).C(p.C, p.collectionOptions...).Find(filter).Context(p.Ctx)}
 }
 
 func (p *Model[T]) FindByID(id interface{}) (*T, error) {
-	return (&FindResult[T]{Find: p.Handler.DB(p.DB).C(p.C).Find(bson.M{"_id": id}).Context(p.Ctx)}).One()
+	return (&FindResult[T]{Find: p.Handler.DB(p.DB, p.databaseOptions...).C(p.C, p.collectionOptions...).Find(bson.M{"_id": id}).Context(p.Ctx)}).One()
 }
 
 func (p *Model[T]) Count(filter interface{}, opts ...*options.CountOptions) (int64, error) {
-	return p.Handler.DB(p.DB).C(p.C).CountDocuments(filter, opts...)
+	return p.Handler.DB(p.DB, p.databaseOptions...).C(p.C, p.collectionOptions...).CountDocuments(filter, opts...)
 }
 
 func (p *Model[T]) Set(filter interface{}, update interface{}) *UpdateResult {
-	return p.Handler.DB(p.DB).C(p.C).UpdateMany(filter, bson.M{"$set": update}).Context(p.Ctx).Do()
+	return p.Handler.DB(p.DB, p.databaseOptions...).C(p.C, p.collectionOptions...).UpdateMany(filter, bson.M{"$set": update}).Context(p.Ctx).Do()
 }
 
 func (p *Model[T]) Update(filter interface{}, update interface{}) *UpdateResult {
-	return p.Handler.DB(p.DB).C(p.C).UpdateMany(filter, update).Context(p.Ctx).Do()
+	return p.Handler.DB(p.DB, p.databaseOptions...).C(p.C, p.collectionOptions...).UpdateMany(filter, update).Context(p.Ctx).Do()
 }
 
 func (p *Model[T]) Insert(document ...*T) *InsertManyResult {
@@ -120,23 +136,23 @@ func (p *Model[T]) Insert(document ...*T) *InsertManyResult {
 	for i := 0; i < len(docs); i++ {
 		docs[i] = document[i]
 	}
-	return p.Handler.DB(p.DB).C(p.C).InsertMany(docs).Context(p.Ctx).Do()
+	return p.Handler.DB(p.DB, p.databaseOptions...).C(p.C, p.collectionOptions...).InsertMany(docs).Context(p.Ctx).Do()
 }
 
 func (p *Model[T]) Delete(filter interface{}) *DeleteResult {
-	return p.Handler.DB(p.DB).C(p.C).DeleteMany(filter).Context(p.Ctx).Do()
+	return p.Handler.DB(p.DB, p.databaseOptions...).C(p.C, p.collectionOptions...).DeleteMany(filter).Context(p.Ctx).Do()
 }
 
 func (p *Model[T]) FindOneAndUpdate(filter interface{}, update interface{}) *FindOneAndUpdateResult[T] {
-	return &FindOneAndUpdateResult[T]{FindOneAndUpdate: p.Handler.DB(p.DB).C(p.C).FindOneAndUpdate(filter, update).Context(p.Ctx)}
+	return &FindOneAndUpdateResult[T]{FindOneAndUpdate: p.Handler.DB(p.DB, p.databaseOptions...).C(p.C, p.collectionOptions...).FindOneAndUpdate(filter, update).Context(p.Ctx)}
 }
 
 func (p *Model[T]) FindOneAndDelete(filter interface{}) *FindOneAndDeleteResult[T] {
-	return &FindOneAndDeleteResult[T]{FindOneAndDelete: p.Handler.DB(p.DB).C(p.C).FindOneAndDelete(filter).Context(p.Ctx)}
+	return &FindOneAndDeleteResult[T]{FindOneAndDelete: p.Handler.DB(p.DB, p.databaseOptions...).C(p.C, p.collectionOptions...).FindOneAndDelete(filter).Context(p.Ctx)}
 }
 
 func (p *Model[T]) FindOneAndReplace(filter interface{}, replacement interface{}) *FindOneAndReplaceResult[T] {
-	return &FindOneAndReplaceResult[T]{FindOneAndReplace: p.Handler.DB(p.DB).C(p.C).FindOneAndReplace(filter, replacement).Context(p.Ctx)}
+	return &FindOneAndReplaceResult[T]{FindOneAndReplace: p.Handler.DB(p.DB, p.databaseOptions...).C(p.C, p.collectionOptions...).FindOneAndReplace(filter, replacement).Context(p.Ctx)}
 }
 
 // FindOneAndReplaceResult is the result of a FindOneAndReplace method.
@@ -330,5 +346,5 @@ func (p *AggregateResult) All(res interface{}) error {
 }
 
 func (p *Model[T]) Aggregate(pipeline interface{}) *AggregateResult {
-	return &AggregateResult{Aggregate: p.Handler.DB(p.DB).C(p.C).Aggregate(pipeline).Context(p.Ctx)}
+	return &AggregateResult{Aggregate: p.Handler.DB(p.DB, p.databaseOptions...).C(p.C, p.collectionOptions...).Aggregate(pipeline).Context(p.Ctx)}
 }
