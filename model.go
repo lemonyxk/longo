@@ -19,19 +19,25 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func NewModel[T any](db string, opt ...*options.DatabaseOptions) *DBModel[T] {
-	return &DBModel[T]{
+func NewModel[T any]() *DBModel[T] {
+	return &DBModel[T]{}
+}
+
+type DBModel[T any] struct{}
+
+func (p *DBModel[T]) DB(db string, opt ...*options.DatabaseOptions) *CModel[T] {
+	return &CModel[T]{
 		DB:              db,
 		databaseOptions: opt,
 	}
 }
 
-type DBModel[T any] struct {
+type CModel[T any] struct {
 	DB              string
 	databaseOptions []*options.DatabaseOptions
 }
 
-func (p *DBModel[T]) C(collection string, opt ...*options.CollectionOptions) *Model[T] {
+func (p *CModel[T]) C(collection string, opt ...*options.CollectionOptions) *Model[T] {
 	return &Model[T]{
 		DB:                p.DB,
 		C:                 collection,

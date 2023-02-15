@@ -36,8 +36,8 @@ func (m *Mgo) DB(db string, opt ...*options.DatabaseOptions) *DB {
 	return &DB{client: m.client, db: db, config: m.config, databaseOptions: opt}
 }
 
-func (m *Mgo) Bucket(db string) *Bucket {
-	return &Bucket{client: m.client, db: db, config: m.config, mgo: m}
+func (m *Mgo) Bucket(db string, opt ...*options.DatabaseOptions) *Bucket {
+	return &Bucket{client: m.client, db: db, config: m.config, mgo: m, databaseOptions: opt}
 }
 
 // TransactionWithLock one by one

@@ -38,7 +38,7 @@ func main() {
 	// }
 	//
 
-	var test2 = longo.NewModel[Test2]("Test", "test2").SetHandler(mgo)
+	var test2 = longo.NewModel[Test2]().DB("Test").C("test2").SetHandler(mgo)
 	test2.FindOneAndUpdate(bson.M{"_id": 999}, bson.M{"$setOnInsert": bson.M{"xixi": 111}, "$inc": bson.M{"a": 1}}).Upsert().Do()
 
 	// mgo.TransactionWithLock(func(handler *longo.Mgo, sessionContext mongo.SessionContext) error {
@@ -336,7 +336,7 @@ func tranIsolationRepeatableOutsideWithWrite() {
 
 			log.Println("tran start")
 
-			var test2 = longo.NewModel[Test2]("Test", "test2").Context(sessionContext).SetHandler(handler)
+			var test2 = longo.NewModel[Test2]().DB("Test").C("test2").Context(sessionContext).SetHandler(handler)
 
 			res1, err := test2.Find(bson.M{}).All()
 

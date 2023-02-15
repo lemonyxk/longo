@@ -42,19 +42,20 @@ type Bucket struct {
 	config Config
 	db     string
 	// context context.Context
-	mgo *Mgo
+	mgo             *Mgo
+	databaseOptions []*options.DatabaseOptions
 }
 
 func (b *Bucket) New() (*gridfs.Bucket, error) {
-	return gridfs.NewBucket(b.client.Database(b.db))
+	return gridfs.NewBucket(b.client.Database(b.db, b.databaseOptions...))
 }
 
-func (b *Bucket) NewFilesModel() *Model[BucketFiles] {
-	return NewModel[BucketFiles](b.db, "fs.files").SetHandler(b.mgo)
+func (b *Bucket) NewFilesModel(opt ...*options.CollectionOptions) *Model[BucketFiles] {
+	return NewModel[BucketFiles]().DB(b.db, b.databaseOptions...).C("fs.files", opt...).SetHandler(b.mgo)
 }
 
-func (b *Bucket) NewChunksModel() *Model[BucketChunks] {
-	return NewModel[BucketChunks](b.db, "fs.chunks").SetHandler(b.mgo)
+func (b *Bucket) NewChunksModel(opt ...*options.CollectionOptions) *Model[BucketChunks] {
+	return NewModel[BucketChunks]().DB(b.db, b.databaseOptions...).C("fs.chunks", opt...).SetHandler(b.mgo)
 }
 
 // func (b *Bucket) Context(ctx context.Context) *Bucket {
@@ -63,19 +64,19 @@ func (b *Bucket) NewChunksModel() *Model[BucketChunks] {
 // }
 
 func (b *Bucket) UploadFile(id primitive.ObjectID, fileName string) *UploadFile {
-	return NewUploadFile(b.client.Database(b.db), id, fileName)
+	return NewUploadFile(b.client.Database(b.db, b.databaseOptions...), id, fileName)
 }
 
 func (b *Bucket) DeleteFile(id primitive.ObjectID) error {
-	return NewDeleteFile(b.client.Database(b.db), id)
+	return NewDeleteFile(b.client.Database(b.db, b.databaseOptions...), id)
 }
 
 func (b *Bucket) DownloadFile(id primitive.ObjectID) *DownloadFile {
-	return NewDownloadFile(b.client.Database(b.db), id)
+	return NewDownloadFile(b.client.Database(b.db, b.databaseOptions...), id)
 }
 
 func (b *Bucket) FindOne(filter interface{}) *FindOne {
-	var bucket, err = gridfs.NewBucket(b.client.Database(b.db))
+	var bucket, err = gridfs.NewBucket(b.client.Database(b.db, b.databaseOptions...))
 	return &FindOne{bucket.GetFilesCollection(), &options.FindOneOptions{}, filter, context.Background(), err}
 }
 
