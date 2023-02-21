@@ -12,7 +12,6 @@ package main
 
 import (
 	"github.com/lemonyxk/longo"
-	"go.mongodb.org/mongo-driver/bson"
 )
 
 type Test2 struct {
@@ -23,17 +22,18 @@ type Test2 struct {
 func main() {
 
 	var url = "mongodb://root:1354243@127.0.0.1:27017,127.0.0.1:27018,127.0.0.1:27019"
-	mgo, _ := longo.NewClient().Connect(&longo.Config{Url: url})
-	_ = mgo
-	//
-	// err := mgo.RawClient().Ping(nil, longo.ReadPreference.Primary)
-	// if err != nil {
-	// 	panic(err)
-	// }
-	//
+	var mgo, err = longo.NewClient().Connect(&longo.Config{Url: url})
+	if err != nil {
+		panic(err)
+	}
 
-	var test2 = longo.NewModel[Test2]().DB("Test").C("test2").SetHandler(mgo)
-	test2.FindOneAndUpdate(bson.M{"_id": 999}, bson.M{"$setOnInsert": bson.M{"xixi": 111}, "$inc": bson.M{"a": 1}}).Upsert().Do()
+	err = mgo.RawClient().Ping(nil, longo.ReadPreference.Primary)
+	if err != nil {
+		panic(err)
+	}
+
+	// var test2 = longo.NewModel[Test2]().DB("Test").C("test2").SetHandler(mgo)
+	// test2.FindOneAndUpdate(bson.M{"_id": 999}, bson.M{"$setOnInsert": bson.M{"xixi": 111}, "$inc": bson.M{"a": 1}}).Upsert().Do()
 
 	// mgo.TransactionWithLock(func(handler *longo.Mgo, sessionContext mongo.SessionContext) error {
 	// 	var test2 = longo.NewModel[Test2]("Test", "test2").Context(sessionContext).SetHandler(mgo)
@@ -136,4 +136,3 @@ func main() {
 	// 	log.Printf("%+v\n", a[i])
 	// }
 }
-
