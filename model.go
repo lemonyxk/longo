@@ -133,8 +133,16 @@ func (p *Model[T]) Set(filter interface{}, update interface{}) *UpdateResult {
 	return p.Handler.DB(p.DB, p.databaseOptions...).C(p.C, p.collectionOptions...).UpdateMany(filter, bson.M{"$set": update}).Context(p.Ctx).Do()
 }
 
+func (p *Model[T]) SetByID(id interface{}, update interface{}) *UpdateResult {
+	return p.Handler.DB(p.DB, p.databaseOptions...).C(p.C, p.collectionOptions...).UpdateMany(bson.M{"_id": id}, bson.M{"$set": update}).Context(p.Ctx).Do()
+}
+
 func (p *Model[T]) Update(filter interface{}, update interface{}) *UpdateResult {
 	return p.Handler.DB(p.DB, p.databaseOptions...).C(p.C, p.collectionOptions...).UpdateMany(filter, update).Context(p.Ctx).Do()
+}
+
+func (p *Model[T]) UpdateByID(id interface{}, update interface{}) *UpdateResult {
+	return p.Handler.DB(p.DB, p.databaseOptions...).C(p.C, p.collectionOptions...).UpdateMany(bson.M{"_id": id}, update).Context(p.Ctx).Do()
 }
 
 func (p *Model[T]) Insert(document ...*T) *InsertManyResult {
@@ -147,6 +155,10 @@ func (p *Model[T]) Insert(document ...*T) *InsertManyResult {
 
 func (p *Model[T]) Delete(filter interface{}) *DeleteResult {
 	return p.Handler.DB(p.DB, p.databaseOptions...).C(p.C, p.collectionOptions...).DeleteMany(filter).Context(p.Ctx).Do()
+}
+
+func (p *Model[T]) DeleteByID(id interface{}) *DeleteResult {
+	return p.Handler.DB(p.DB, p.databaseOptions...).C(p.C, p.collectionOptions...).DeleteMany(bson.M{"_id": id}).Context(p.Ctx).Do()
 }
 
 func (p *Model[T]) FindOneAndUpdate(filter interface{}, update interface{}) *FindOneAndUpdateResult[T] {
