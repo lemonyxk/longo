@@ -38,7 +38,6 @@ func (i *InsertMany) Context(ctx context.Context) *InsertMany {
 	return i
 }
 
-func (i *InsertMany) Do() *InsertManyResult {
-	res, err := i.collection.InsertMany(i.sessionContext, i.document, i.insertManyOption)
-	return &InsertManyResult{insertManyResult: res, err: err}
+func (i *InsertMany) Exec() (*mongo.InsertManyResult, error) {
+	return i.collection.InsertMany(i.sessionContext, i.document, i.insertManyOption)
 }

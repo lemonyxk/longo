@@ -39,7 +39,6 @@ func (i *ReplaceOne) Context(ctx context.Context) *ReplaceOne {
 	return i
 }
 
-func (i *ReplaceOne) Do() *UpdateResult {
-	res, err := i.collection.ReplaceOne(i.sessionContext, i.filter, i.update, i.replaceOneOption)
-	return &UpdateResult{updateResult: res, err: err}
+func (i *ReplaceOne) Exec() (*mongo.UpdateResult, error) {
+	return i.collection.ReplaceOne(i.sessionContext, i.filter, i.update, i.replaceOneOption)
 }

@@ -39,7 +39,6 @@ func (i *UpdateOne) Context(ctx context.Context) *UpdateOne {
 	return i
 }
 
-func (i *UpdateOne) Do() *UpdateResult {
-	res, err := i.collection.UpdateOne(i.sessionContext, i.filter, i.update, i.updateOneOption)
-	return &UpdateResult{updateResult: res, err: err}
+func (i *UpdateOne) Exec() (*mongo.UpdateResult, error) {
+	return i.collection.UpdateOne(i.sessionContext, i.filter, i.update, i.updateOneOption)
 }

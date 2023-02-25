@@ -38,7 +38,6 @@ func (i *DeleteOne) Context(ctx context.Context) *DeleteOne {
 	return i
 }
 
-func (i *DeleteOne) Do() *DeleteResult {
-	res, err := i.collection.DeleteOne(i.sessionContext, i.filter, i.deleteOneOption)
-	return &DeleteResult{deleteResult: res, err: err}
+func (i *DeleteOne) Exec() (*mongo.DeleteResult, error) {
+	return i.collection.DeleteOne(i.sessionContext, i.filter, i.deleteOneOption)
 }

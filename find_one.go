@@ -59,10 +59,10 @@ func (f *FindOne) Option(opt *options.FindOneOptions) *FindOne {
 	return f
 }
 
-func (f *FindOne) Do(result interface{}) error {
+func (f *FindOne) Exec(result interface{}) error {
 	if f.err != nil {
 		return f.err
 	}
 	var res = &SingleResult{singleResult: f.collection.FindOne(f.sessionContext, f.filter, f.option)}
-	return res.Do(result)
+	return res.One(result)
 }

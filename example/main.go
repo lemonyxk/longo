@@ -11,7 +11,11 @@
 package main
 
 import (
+	"log"
+
 	"github.com/lemonyxk/longo"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type Test2 struct {
@@ -32,19 +36,33 @@ func main() {
 		panic(err)
 	}
 
+	var test1 = longo.NewModel[Test2]().DB("Test").C("User").SetHandler(mgo)
+	var test2 = longo.NewModel[Test2]().DB("Test").C("Test1").SetHandler(mgo)
+
+	mgo.Transaction(func(handler *longo.Mgo, sessionContext mongo.SessionContext) error {
+
+		test1.Set(bson.M{"id": 2}, bson.M{"money": 100}).Context(sessionContext).Exec()
+
+		test2.Set(bson.M{"id": 2}, bson.M{"money": 100}).Context(sessionContext).Exec()
+
+		return nil
+	})
+
+	log.Println(test1.Set(bson.M{"id": 3}, bson.M{"money": 200}).Exec())
+
 	// var test2 = longo.NewModel[Test2]().DB("Test").C("test2").SetHandler(mgo)
-	// test2.FindOneAndUpdate(bson.M{"_id": 999}, bson.M{"$setOnInsert": bson.M{"xixi": 111}, "$inc": bson.M{"a": 1}}).Upsert().Do()
+	// test2.FindOneAndUpdate(bson.M{"_id": 999}, bson.M{"$setOnInsert": bson.M{"xixi": 111}, "$inc": bson.M{"a": 1}}).Upsert().Exec()
 
 	// mgo.TransactionWithLock(func(handler *longo.Mgo, sessionContext mongo.SessionContext) error {
 	// 	var test2 = longo.NewModel[Test2]("Test", "test2").Context(sessionContext).SetHandler(mgo)
-	// 	var res = test2.FindOneAndUpdate(bson.M{"id": 2}, bson.M{"$inc": bson.M{"money": 1}}).Upsert().ReturnDocument().Do()
+	// 	var res = test2.FindOneAndUpdate(bson.M{"id": 2}, bson.M{"$inc": bson.M{"money": 1}}).Upsert().ReturnDocument().Exec()
 	// 	log.Println(res)
 	// 	return nil
 	// 	return errors.New("1")
 	// })
 
 	//
-	// res, err := test2.Find(bson.M{"id": 1111111111}).One()
+	// res, err := test2.Find(bson.M{"id": 1111111111}).Exec()
 	// log.Println(res, err)
 
 	// tranIsolationRepeatableOutside()

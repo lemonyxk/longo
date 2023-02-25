@@ -38,7 +38,6 @@ func (i *DeleteMany) Context(ctx context.Context) *DeleteMany {
 	return i
 }
 
-func (i *DeleteMany) Do() *DeleteResult {
-	res, err := i.collection.DeleteMany(i.sessionContext, i.filter, i.deleteManyOption)
-	return &DeleteResult{deleteResult: res, err: err}
+func (i *DeleteMany) Exec() (*mongo.DeleteResult, error) {
+	return i.collection.DeleteMany(i.sessionContext, i.filter, i.deleteManyOption)
 }

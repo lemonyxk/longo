@@ -38,7 +38,6 @@ func (i *InsertOne) Context(ctx context.Context) *InsertOne {
 	return i
 }
 
-func (i *InsertOne) Do() *InsertOneResult {
-	res, err := i.collection.InsertOne(i.sessionContext, i.document, i.insertOneOption)
-	return &InsertOneResult{insertOneResult: res, err: err}
+func (i *InsertOne) Exec() (*mongo.InsertOneResult, error) {
+	return i.collection.InsertOne(i.sessionContext, i.document, i.insertOneOption)
 }

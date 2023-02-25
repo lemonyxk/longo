@@ -22,7 +22,7 @@ type ChangeStreamResult struct {
 	err          error
 }
 
-func (ct *ChangeStreamResult) Do(result interface{}) error {
+func (ct *ChangeStreamResult) Exec(result interface{}) error {
 	if ct.err != nil {
 		return ct.err
 	}

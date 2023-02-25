@@ -66,7 +66,7 @@ func (f *FindOneAndReplace) Option(opt *options.FindOneAndReplaceOptions) *FindO
 	return f
 }
 
-func (f *FindOneAndReplace) Do(result interface{}) error {
+func (f *FindOneAndReplace) Exec(result interface{}) error {
 	var res = &SingleResult{singleResult: f.collection.FindOneAndReplace(f.sessionContext, f.filter, f.replacement, f.option)}
-	return res.Do(result)
+	return res.One(result)
 }

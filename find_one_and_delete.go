@@ -53,7 +53,7 @@ func (f *FindOneAndDelete) Option(opt *options.FindOneAndDeleteOptions) *FindOne
 	return f
 }
 
-func (f *FindOneAndDelete) Do(result interface{}) error {
+func (f *FindOneAndDelete) Exec(result interface{}) error {
 	var res = &SingleResult{singleResult: f.collection.FindOneAndDelete(f.sessionContext, f.filter, f.option)}
-	return res.Do(result)
+	return res.One(result)
 }
