@@ -118,6 +118,9 @@ func (p *Model[T]) Context(ctx context.Context) *Model[T] {
 }
 
 func (p *Model[T]) Count(filter interface{}, opts ...*options.CountOptions) (int64, error) {
+	if filter == nil {
+		return p.Handler.DB(p.DB, p.databaseOptions...).C(p.C, p.collectionOptions...).EstimatedDocumentCount()
+	}
 	return p.Handler.DB(p.DB, p.databaseOptions...).C(p.C, p.collectionOptions...).CountDocuments(filter, opts...)
 }
 

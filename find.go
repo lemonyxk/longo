@@ -65,6 +65,9 @@ func (f *Find) Option(opt *options.FindOptions) *Find {
 }
 
 func (f *Find) Count(opts ...*options.CountOptions) (int64, error) {
+	if f.filter == nil {
+		return f.collection.EstimatedDocumentCount(f.sessionContext)
+	}
 	return f.collection.CountDocuments(f.sessionContext, f.filter, opts...)
 }
 
