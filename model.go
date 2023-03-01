@@ -3,7 +3,7 @@
 *
 * @description:
 *
-* @author: lemo
+* @author: lemon
 *
 * @create: 2020-04-08 17:39
 **/
@@ -117,6 +117,10 @@ func (p *Model[T]) CreateIndex() *Model[T] {
 	}
 
 	return p
+}
+
+func (p *Model[T]) Database() *Database {
+	return p.Handler.DB(p.DB, p.DatabaseOptions...)
 }
 
 func (p *Model[T]) Collection() *Collection {

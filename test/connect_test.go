@@ -3,7 +3,7 @@
 *
 * @description:
 *
-* @author: lemo
+* @author: lemon
 *
 * @create: 2023-03-01 15:43
 **/
@@ -18,8 +18,12 @@ import (
 )
 
 type TestDB struct {
-	ID  int     `json:"id" bson:"id"`
+	ID  int     `json:"id" bson:"id" index:"id_1"`
 	Add float64 `json:"add" bson:"add"`
+}
+
+func (t *TestDB) Empty() bool {
+	return t == nil || t.ID == 0
 }
 
 var mgo *longo.Mgo
@@ -38,10 +42,6 @@ func connect() {
 		panic(err)
 	}
 
-	err = mgo.RawClient().Database("Test").Collection("test").Drop(context.Background())
-	if err != nil {
-		panic(err)
-	}
 }
 
 func clean() {

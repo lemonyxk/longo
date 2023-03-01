@@ -3,7 +3,7 @@
 *
 * @description:
 *
-* @author: lemo
+* @author: lemon
 *
 * @create: 2019-10-28 15:35
 **/
@@ -32,8 +32,8 @@ func (m *Mgo) Ping() error {
 	return m.client.Ping(context.Background(), ReadPreference.Primary)
 }
 
-func (m *Mgo) DB(db string, opt ...*options.DatabaseOptions) *DB {
-	return &DB{client: m.client, db: db, config: m.config, databaseOptions: opt}
+func (m *Mgo) DB(db string, opt ...*options.DatabaseOptions) *Database {
+	return &Database{client: m.client, db: db, config: m.config, databaseOptions: opt}
 }
 
 func (m *Mgo) Bucket(db string, opt ...*options.DatabaseOptions) *Bucket {
