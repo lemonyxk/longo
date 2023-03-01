@@ -50,12 +50,12 @@ func (b *Bucket) New() (*gridfs.Bucket, error) {
 	return gridfs.NewBucket(b.client.Database(b.db, b.databaseOptions...))
 }
 
-func (b *Bucket) NewFilesModel(opt ...*options.CollectionOptions) *Model[BucketFiles] {
-	return NewModel[BucketFiles]().DB(b.db, b.databaseOptions...).C("fs.files", opt...).SetHandler(b.mgo)
+func (b *Bucket) NewFilesModel(ctx context.Context, opt ...*options.CollectionOptions) *Model[BucketFiles] {
+	return NewModel[BucketFiles](ctx, b.mgo).DB(b.db, b.databaseOptions...).C("fs.files", opt...)
 }
 
-func (b *Bucket) NewChunksModel(opt ...*options.CollectionOptions) *Model[BucketChunks] {
-	return NewModel[BucketChunks]().DB(b.db, b.databaseOptions...).C("fs.chunks", opt...).SetHandler(b.mgo)
+func (b *Bucket) NewChunksModel(ctx context.Context, opt ...*options.CollectionOptions) *Model[BucketChunks] {
+	return NewModel[BucketChunks](ctx, b.mgo).DB(b.db, b.databaseOptions...).C("fs.chunks", opt...)
 }
 
 // func (b *Bucket) Context(ctx context.Context) *Bucket {

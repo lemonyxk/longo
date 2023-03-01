@@ -11,6 +11,7 @@
 package main
 
 import (
+	"context"
 	"log"
 
 	"github.com/lemonyxk/longo"
@@ -36,8 +37,8 @@ func main() {
 		panic(err)
 	}
 
-	var test1 = longo.NewModel[Test2]().DB("Test").C("User").SetHandler(mgo)
-	var test2 = longo.NewModel[Test2]().DB("Test").C("Test1").SetHandler(mgo)
+	var test1 = longo.NewModel[Test2](context.Background(), mgo).DB("Test").C("User")
+	var test2 = longo.NewModel[Test2](context.Background(), mgo).DB("Test").C("Test1")
 
 	mgo.Transaction(func(handler *longo.Mgo, sessionContext mongo.SessionContext) error {
 
