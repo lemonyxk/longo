@@ -19,30 +19,40 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func NewModel[T any]() *DBModel[T] {
-	return &DBModel[T]{}
+func NewModel[T any](ctx context.Context, handler *Mgo) *DBModel[T] {
+	return &DBModel[T]{
+		Handler: handler,
+		Ctx:     ctx,
+	}
 }
 
-type DBModel[T any] struct{}
+type DBModel[T any] struct {
+	Handler *Mgo
+	Ctx     context.Context
+}
 
 func (p *DBModel[T]) DB(db string, opt ...*options.DatabaseOptions) *CModel[T] {
 	return &CModel[T]{
 		DB:              db,
-		databaseOptions: opt,
+		DatabaseOptions: opt,
+		DBModel:         p,
 	}
 }
 
 type CModel[T any] struct {
 	DB              string
-	databaseOptions []*options.DatabaseOptions
+	DatabaseOptions []*options.DatabaseOptions
+	*DBModel[T]
 }
 
 func (p *CModel[T]) C(collection string, opt ...*options.CollectionOptions) *Model[T] {
 	return &Model[T]{
 		DB:                p.DB,
 		C:                 collection,
-		databaseOptions:   p.databaseOptions,
-		collectionOptions: opt,
+		DatabaseOptions:   p.DatabaseOptions,
+		CollectionOptions: opt,
+		Ctx:               p.Ctx,
+		Handler:           p.Handler,
 	}
 }
 
@@ -52,14 +62,15 @@ type Model[T any] struct {
 	DB                string
 	C                 string
 	Ctx               context.Context
-	databaseOptions   []*options.DatabaseOptions
-	collectionOptions []*options.CollectionOptions
+	DatabaseOptions   []*options.DatabaseOptions
+	CollectionOptions []*options.CollectionOptions
 }
 
-func (p *Model[T]) SetHandler(handler *Mgo) *Model[T] {
-	p.Handler = handler
-	return p
-}
+// func (p *Model[T]) SetHandler(ctx context.Context, handler *Mgo) *Model[T] {
+// 	p.Handler = handler
+// 	p.Ctx = ctx
+// 	return p
+// }
 
 func (p *Model[T]) CreateIndex() *Model[T] {
 	var t T
@@ -109,35 +120,35 @@ func (p *Model[T]) CreateIndex() *Model[T] {
 }
 
 func (p *Model[T]) Collection() *Collection {
-	return p.Handler.DB(p.DB, p.databaseOptions...).C(p.C, p.collectionOptions...).Context(p.Ctx)
+	return p.Handler.DB(p.DB, p.DatabaseOptions...).C(p.C, p.CollectionOptions...).Context(p.Ctx)
 }
 
-func (p *Model[T]) Context(ctx context.Context) *Model[T] {
-	p.Ctx = ctx
-	return p
-}
+// func (p *Model[T]) Context(ctx context.Context) *Model[T] {
+// 	p.Ctx = ctx
+// 	return p
+// }
 
 func (p *Model[T]) Count(filter interface{}, opts ...*options.CountOptions) (int64, error) {
 	if filter == nil {
-		return p.Handler.DB(p.DB, p.databaseOptions...).C(p.C, p.collectionOptions...).EstimatedDocumentCount()
+		return p.Handler.DB(p.DB, p.DatabaseOptions...).C(p.C, p.CollectionOptions...).EstimatedDocumentCount()
 	}
-	return p.Handler.DB(p.DB, p.databaseOptions...).C(p.C, p.collectionOptions...).CountDocuments(filter, opts...)
+	return p.Handler.DB(p.DB, p.DatabaseOptions...).C(p.C, p.CollectionOptions...).CountDocuments(filter, opts...)
 }
 
 func (p *Model[T]) Set(filter interface{}, update interface{}) *UpdateMany {
-	return p.Handler.DB(p.DB, p.databaseOptions...).C(p.C, p.collectionOptions...).UpdateMany(filter, bson.M{"$set": update}).Context(p.Ctx)
+	return p.Handler.DB(p.DB, p.DatabaseOptions...).C(p.C, p.CollectionOptions...).UpdateMany(filter, bson.M{"$set": update}).Context(p.Ctx)
 }
 
 func (p *Model[T]) SetByID(id interface{}, update interface{}) *UpdateMany {
-	return p.Handler.DB(p.DB, p.databaseOptions...).C(p.C, p.collectionOptions...).UpdateMany(bson.M{"_id": id}, bson.M{"$set": update}).Context(p.Ctx)
+	return p.Handler.DB(p.DB, p.DatabaseOptions...).C(p.C, p.CollectionOptions...).UpdateMany(bson.M{"_id": id}, bson.M{"$set": update}).Context(p.Ctx)
 }
 
 func (p *Model[T]) Update(filter interface{}, update interface{}) *UpdateMany {
-	return p.Handler.DB(p.DB, p.databaseOptions...).C(p.C, p.collectionOptions...).UpdateMany(filter, update).Context(p.Ctx)
+	return p.Handler.DB(p.DB, p.DatabaseOptions...).C(p.C, p.CollectionOptions...).UpdateMany(filter, update).Context(p.Ctx)
 }
 
 func (p *Model[T]) UpdateByID(id interface{}, update interface{}) *UpdateMany {
-	return p.Handler.DB(p.DB, p.databaseOptions...).C(p.C, p.collectionOptions...).UpdateMany(bson.M{"_id": id}, update).Context(p.Ctx)
+	return p.Handler.DB(p.DB, p.DatabaseOptions...).C(p.C, p.CollectionOptions...).UpdateMany(bson.M{"_id": id}, update).Context(p.Ctx)
 }
 
 func (p *Model[T]) Insert(document ...*T) *InsertMany {
@@ -145,21 +156,21 @@ func (p *Model[T]) Insert(document ...*T) *InsertMany {
 	for i := 0; i < len(docs); i++ {
 		docs[i] = document[i]
 	}
-	return p.Handler.DB(p.DB, p.databaseOptions...).C(p.C, p.collectionOptions...).InsertMany(docs).Context(p.Ctx)
+	return p.Handler.DB(p.DB, p.DatabaseOptions...).C(p.C, p.CollectionOptions...).InsertMany(docs).Context(p.Ctx)
 }
 
 func (p *Model[T]) Delete(filter interface{}) *DeleteMany {
-	return p.Handler.DB(p.DB, p.databaseOptions...).C(p.C, p.collectionOptions...).DeleteMany(filter).Context(p.Ctx)
+	return p.Handler.DB(p.DB, p.DatabaseOptions...).C(p.C, p.CollectionOptions...).DeleteMany(filter).Context(p.Ctx)
 }
 
 func (p *Model[T]) DeleteByID(id interface{}) *DeleteMany {
-	return p.Handler.DB(p.DB, p.databaseOptions...).C(p.C, p.collectionOptions...).DeleteMany(bson.M{"_id": id}).Context(p.Ctx)
+	return p.Handler.DB(p.DB, p.DatabaseOptions...).C(p.C, p.CollectionOptions...).DeleteMany(bson.M{"_id": id}).Context(p.Ctx)
 }
 
 // FindOneAndReplaceResult is the result of a FindOneAndReplace method.
 
 func (p *Model[T]) FindOneAndReplace(filter interface{}, replacement interface{}) *FindOneAndReplaceResult[T] {
-	return &FindOneAndReplaceResult[T]{FindOneAndReplace: p.Handler.DB(p.DB, p.databaseOptions...).C(p.C, p.collectionOptions...).FindOneAndReplace(filter, replacement).Context(p.Ctx)}
+	return &FindOneAndReplaceResult[T]{FindOneAndReplace: p.Handler.DB(p.DB, p.DatabaseOptions...).C(p.C, p.CollectionOptions...).FindOneAndReplace(filter, replacement).Context(p.Ctx)}
 }
 
 type FindOneAndReplaceResult[T any] struct {
@@ -213,7 +224,7 @@ func (f *FindOneAndReplaceResult[T]) Exec() (*T, error) {
 // FindOneAndDeleteResult is the result of a FindOneAndDelete operation.
 
 func (p *Model[T]) FindOneAndDelete(filter interface{}) *FindOneAndDeleteResult[T] {
-	return &FindOneAndDeleteResult[T]{FindOneAndDelete: p.Handler.DB(p.DB, p.databaseOptions...).C(p.C, p.collectionOptions...).FindOneAndDelete(filter).Context(p.Ctx)}
+	return &FindOneAndDeleteResult[T]{FindOneAndDelete: p.Handler.DB(p.DB, p.DatabaseOptions...).C(p.C, p.CollectionOptions...).FindOneAndDelete(filter).Context(p.Ctx)}
 }
 
 type FindOneAndDeleteResult[T any] struct {
@@ -255,7 +266,7 @@ func (f *FindOneAndDeleteResult[T]) Exec() (*T, error) {
 // FindOneAndUpdateResult is a find one and update
 
 func (p *Model[T]) FindOneAndUpdate(filter interface{}, update interface{}) *FindOneAndUpdateResult[T] {
-	return &FindOneAndUpdateResult[T]{FindOneAndUpdate: p.Handler.DB(p.DB, p.databaseOptions...).C(p.C, p.collectionOptions...).FindOneAndUpdate(filter, update).Context(p.Ctx)}
+	return &FindOneAndUpdateResult[T]{FindOneAndUpdate: p.Handler.DB(p.DB, p.DatabaseOptions...).C(p.C, p.CollectionOptions...).FindOneAndUpdate(filter, update).Context(p.Ctx)}
 }
 
 type FindOneAndUpdateResult[T any] struct {
@@ -309,11 +320,11 @@ func (f *FindOneAndUpdateResult[T]) Exec() (*T, error) {
 // FindResult is the result of a Find operation.
 
 func (p *Model[T]) Find(filter interface{}) *FindResult[T] {
-	return &FindResult[T]{Find: p.Handler.DB(p.DB, p.databaseOptions...).C(p.C, p.collectionOptions...).Find(filter).Context(p.Ctx)}
+	return &FindResult[T]{Find: p.Handler.DB(p.DB, p.DatabaseOptions...).C(p.C, p.CollectionOptions...).Find(filter).Context(p.Ctx)}
 }
 
-func (p *Model[T]) FindByID(id interface{}) (*T, error) {
-	return (&FindResult[T]{Find: p.Handler.DB(p.DB, p.databaseOptions...).C(p.C, p.collectionOptions...).Find(bson.M{"_id": id}).Context(p.Ctx)}).One()
+func (p *Model[T]) FindByID(id interface{}) *FindResult[T] {
+	return &FindResult[T]{Find: p.Handler.DB(p.DB, p.DatabaseOptions...).C(p.C, p.CollectionOptions...).Find(bson.M{"_id": id}).Context(p.Ctx)}
 }
 
 type FindResult[T any] struct {
@@ -365,7 +376,7 @@ func (p *FindResult[T]) All() ([]*T, error) {
 // AggregateResult is the result from an aggregate operation.
 
 func (p *Model[T]) Aggregate(pipeline interface{}) *AggregateResult {
-	return &AggregateResult{Aggregate: p.Handler.DB(p.DB, p.databaseOptions...).C(p.C, p.collectionOptions...).Aggregate(pipeline).Context(p.Ctx)}
+	return &AggregateResult{Aggregate: p.Handler.DB(p.DB, p.DatabaseOptions...).C(p.C, p.CollectionOptions...).Aggregate(pipeline).Context(p.Ctx)}
 }
 
 type AggregateResult struct {
