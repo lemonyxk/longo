@@ -252,3 +252,58 @@ func Test_Transaction_RepeatableWithWrite(t *testing.T) {
 
 	wait.Wait()
 }
+
+func Test_Transaction_Set(t *testing.T) {
+
+	var wait sync.WaitGroup
+
+	wait.Add(2)
+
+	var test = longo.NewModel[TestDB](context.Background(), mgo).DB("Test").C("Test_Transaction_Set")
+
+	_, err := test.Insert(&TestDB{ID: 1, Add: 1}).Exec()
+	assert.True(t, err == nil, err)
+
+	go func() {
+		var err = mgo.Transaction(func(handler *longo.Mgo, sessionContext mongo.SessionContext) error {
+
+			time.Sleep(time.Millisecond * 100)
+
+			c, err := test.Update(bson.M{"id": 1}, bson.M{"$set": bson.M{"add": 1}}).Context(sessionContext).Exec()
+			if err != nil {
+				return err
+			}
+
+			assert.True(t, c == nil, c)
+
+			time.Sleep(time.Millisecond * 1000)
+
+			return nil
+		})
+
+		assert.True(t, err != nil, err)
+		wait.Done()
+	}()
+
+	go func() {
+		var err = mgo.Transaction(func(handler *longo.Mgo, sessionContext mongo.SessionContext) error {
+
+			c, err := test.Update(bson.M{"id": 1}, bson.M{"$set": bson.M{"add": 2}}).Context(sessionContext).Exec()
+			if err != nil {
+				return err
+			}
+
+			assert.True(t, c.ModifiedCount == 1, c)
+
+			time.Sleep(time.Millisecond * 500)
+
+			return nil
+		})
+
+		assert.True(t, err == nil, err)
+
+		wait.Done()
+	}()
+
+	wait.Wait()
+}
