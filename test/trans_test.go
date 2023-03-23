@@ -307,3 +307,42 @@ func Test_Transaction_Set(t *testing.T) {
 
 	wait.Wait()
 }
+
+func Test_Transaction_Set_Wait(t *testing.T) {
+	var wait sync.WaitGroup
+
+	wait.Add(2)
+
+	var test = longo.NewModel[TestDB](context.Background(), mgo).DB("Test").C("Test_Transaction_RepeatableWithWrite")
+
+	_, err := test.Insert(&TestDB{ID: 1, Add: 1}).Exec()
+	assert.True(t, err == nil, err)
+
+	go func() {
+		var err = mgo.Transaction(func(handler *longo.Mgo, sessionContext mongo.SessionContext) error {
+			time.Sleep(time.Millisecond * 500)
+			_, err := test.Set(bson.M{"id": 1}, bson.M{"add": 2}).Context(sessionContext).Exec()
+			if err != nil {
+				return err
+			}
+
+			time.Sleep(time.Millisecond * 3000)
+
+			return nil
+		})
+
+		assert.True(t, err == nil, err)
+
+		wait.Done()
+	}()
+
+	go func() {
+		time.Sleep(time.Millisecond * 1000)
+		// will wait for transaction until timeout
+		_, err := test.FindOneAndUpdate(bson.M{"id": 1, "add": 1}, bson.M{"$set": bson.M{"add": 2}}).Exec()
+		assert.True(t, err == mongo.ErrNoDocuments, err)
+		wait.Done()
+	}()
+
+	wait.Wait()
+}

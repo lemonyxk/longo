@@ -18,8 +18,8 @@ import (
 )
 
 type TestDB struct {
-	ID  int     `json:"id" bson:"id" index:"id_1"`
-	Add float64 `json:"add" bson:"add"`
+	ID   int     `json:"id" bson:"id" index:"id_1"`
+	Add  float64 `json:"add" bson:"add"`
 }
 
 func (t *TestDB) Empty() bool {
