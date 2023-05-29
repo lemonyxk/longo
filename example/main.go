@@ -11,7 +11,12 @@
 package main
 
 import (
+	"context"
+	"log"
+
 	"github.com/lemonyxk/longo"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type Test2 struct {
@@ -31,6 +36,17 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	var test2 = longo.NewModel[Test2](context.Background(), mgo).DB("Test").C("test2")
+
+	a, err := test2.FindOneAndUpdate(bson.M{"_id": 96, "id": 3}, bson.M{"$set": Test2{
+		ID:    3,
+		Money: 5454,
+	}}).Upsert().ReturnDocument().Exec()
+	log.Println(a, err)
+
+	_,err = test2.FindOneAndUpdate(bson.M{"_id": 99}, bson.M{"$inc": bson.M{"a": 1}}).Upsert().Exec()
+	log.Println(mongo.ErrNoDocuments == err)
 
 	// var test1 = longo.NewModel[Test2](context.Background(), mgo).DB("Test").C("User")
 	// var test2 = longo.NewModel[Test2](context.Background(), mgo).DB("Test").C("Test1")

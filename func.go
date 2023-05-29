@@ -19,13 +19,12 @@ import (
 )
 
 // in array
-func inMapArray(m map[string]bool, src []string) bool {
-	for i := 0; i < len(src); i++ {
-		if m[src[i]] {
-			return true
-		}
+func inMapArray(m map[string]bool, src string) bool {
+	var arr = strings.Split(src, ",")
+	if len(arr) == 0 {
+		return false
 	}
-	return false
+	return m[arr[0]]
 }
 
 // parse index

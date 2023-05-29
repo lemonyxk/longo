@@ -98,22 +98,34 @@ func (p *Model[T]) CreateIndex() *Model[T] {
 	for i := 0; i < n; i++ {
 		var field = srcType.Field(i)
 		var indexName = field.Tag.Get("index")
-		var indexNameArr = strings.Split(indexName, ",")
-		if indexName != "" && len(indexNameArr) > 0 && !inMapArray(mr, indexNameArr) {
-			index = append(index, indexName)
+		var indexNameArr = strings.Split(indexName, " ")
+		if indexName != "" && len(indexNameArr) > 0 {
+			for j := 0; j < len(indexNameArr); j++ {
+				if !inMapArray(mr, indexNameArr[j]) && indexNameArr[j] != "" {
+					index = append(index, indexNameArr[j])
+				}
+			}
 		}
 
 		var indexesName = field.Tag.Get("indexes")
-		var indexesNameArr = strings.Split(indexesName, ",")
-		if indexesName != "" && len(indexesNameArr) > 0 && !inMapArray(mr, indexesNameArr) {
-			indexes = append(indexes, indexesName)
+		var indexesNameArr = strings.Split(indexesName, " ")
+		if indexesName != "" && len(indexesNameArr) > 0 {
+			for j := 0; j < len(indexesNameArr); j++ {
+				if !inMapArray(mr, indexesNameArr[j]) && indexesNameArr[j] != "" {
+					indexes = append(indexes, indexesNameArr[j])
+				}
+			}
 		}
 	}
 
 	var create = parseIndex(index)
 	create = append(create, parseIndexes(indexes)...)
+
 	if len(create) > 0 {
-		_, _ = p.Collection().Indexes().CreateMany(create)
+		_, err := p.Collection().Indexes().CreateMany(create)
+		if err != nil {
+			panic(err)
+		}
 	}
 
 	return p
