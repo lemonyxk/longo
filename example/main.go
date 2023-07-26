@@ -11,42 +11,55 @@
 package main
 
 import (
-	"context"
+	filter2 "github.com/lemonyxk/longo/filter"
 	"log"
-
-	"github.com/lemonyxk/longo"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type Test2 struct {
-	ID    int     `json:"id" bson:"id" index:"id_1"`
+	ID    int     `json:"id" bson:"_id" index:"id_1"`
 	Money float64 `json:"money" bson:"money"`
+	Test  *Test2  `json:"test" bson:"test"`
 }
 
 func main() {
 
-	var url = "mongodb://root:1354243@127.0.0.1:27017,127.0.0.1:27018,127.0.0.1:27019"
-	var mgo, err = longo.NewClient().Connect(&longo.Config{Url: url})
-	if err != nil {
-		panic(err)
+	var filter = filter2.New()
+
+	var data = &Test2{
+		ID:    1,
+		Money: 1.1,
+		Test: &Test2{
+			ID: 2,
+		},
 	}
 
-	err = mgo.RawClient().Ping(nil, longo.ReadPreference.Primary)
-	if err != nil {
-		panic(err)
-	}
+	data.Test.Test = data
 
-	var test2 = longo.NewModel[Test2](context.Background(), mgo).DB("Test").C("test2")
+	var res = filter.Zero(data)
 
-	a, err := test2.FindOneAndUpdate(bson.M{"_id": 96, "id": 3}, bson.M{"$set": Test2{
-		ID:    3,
-		Money: 5454,
-	}}).Upsert().ReturnDocument().Exec()
-	log.Println(a, err)
+	log.Println(res)
 
-	_,err = test2.FindOneAndUpdate(bson.M{"_id": 99}, bson.M{"$inc": bson.M{"a": 1}}).Upsert().Exec()
-	log.Println(mongo.ErrNoDocuments == err)
+	//var url = "mongodb://root:1354243@127.0.0.1:27017,127.0.0.1:27018,127.0.0.1:27019"
+	//var mgo, err = longo.NewClient().Connect(&longo.Config{Url: url})
+	//if err != nil {
+	//	panic(err)
+	//}
+	//
+	//err = mgo.RawClient().Ping(nil, longo.ReadPreference.Primary)
+	//if err != nil {
+	//	panic(err)
+	//}
+	//
+	//var test2 = longo.NewModel[Test2](context.Background(), mgo).DB("Test").C("test2")
+	//
+	//a, err := test2.FindOneAndUpdate(bson.M{"_id": 96, "id": 3}, bson.M{"$set": Test2{
+	//	ID:    3,
+	//	Money: 5454,
+	//}}).Upsert().ReturnDocument().Exec()
+	//log.Println(a, err)
+	//
+	//_,err = test2.FindOneAndUpdate(bson.M{"_id": 99}, bson.M{"$inc": bson.M{"a": 1}}).Upsert().Exec()
+	//log.Println(mongo.ErrNoDocuments == err)
 
 	// var test1 = longo.NewModel[Test2](context.Background(), mgo).DB("Test").C("User")
 	// var test2 = longo.NewModel[Test2](context.Background(), mgo).DB("Test").C("Test1")
