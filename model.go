@@ -19,34 +19,34 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func NewModel[T any](ctx context.Context, handler *Mgo) *DBModel[T] {
-	return &DBModel[T]{
+func NewModel[T ~[]*E, E any](ctx context.Context, handler *Mgo) *DBModel[T, E] {
+	return &DBModel[T, E]{
 		Handler: handler,
 		Ctx:     ctx,
 	}
 }
 
-type DBModel[T any] struct {
+type DBModel[T ~[]*E, E any] struct {
 	Handler *Mgo
 	Ctx     context.Context
 }
 
-func (p *DBModel[T]) DB(db string, opt ...*options.DatabaseOptions) *CModel[T] {
-	return &CModel[T]{
+func (p *DBModel[T, E]) DB(db string, opt ...*options.DatabaseOptions) *CModel[T, E] {
+	return &CModel[T, E]{
 		DB:              db,
 		DatabaseOptions: opt,
 		DBModel:         p,
 	}
 }
 
-type CModel[T any] struct {
+type CModel[T ~[]*E, E any] struct {
 	DB              string
 	DatabaseOptions []*options.DatabaseOptions
-	*DBModel[T]
+	*DBModel[T, E]
 }
 
-func (p *CModel[T]) C(collection string, opt ...*options.CollectionOptions) *Model[T] {
-	return &Model[T]{
+func (p *CModel[T, E]) C(collection string, opt ...*options.CollectionOptions) *Model[T, E] {
+	return &Model[T, E]{
 		DB:                p.DB,
 		C:                 collection,
 		DatabaseOptions:   p.DatabaseOptions,
@@ -57,7 +57,7 @@ func (p *CModel[T]) C(collection string, opt ...*options.CollectionOptions) *Mod
 }
 
 // Model is a mongodb model
-type Model[T any] struct {
+type Model[T ~[]*E, E any] struct {
 	Handler           *Mgo
 	DB                string
 	C                 string
@@ -66,14 +66,14 @@ type Model[T any] struct {
 	CollectionOptions []*options.CollectionOptions
 }
 
-// func (p *Model[T]) SetHandler(ctx context.Context, handler *Mgo) *Model[T] {
+// func (p *Model[T,E]) SetHandler(ctx context.Context, handler *Mgo) *Model[T,E] {
 // 	p.Handler = handler
 // 	p.Ctx = ctx
 // 	return p
 // }
 
-func (p *Model[T]) CreateIndex() *Model[T] {
-	var t T
+func (p *Model[T, E]) CreateIndex() *Model[T, E] {
+	var t E
 	var srcType = reflect.TypeOf(t)
 	if srcType.Kind() != reflect.Struct {
 		panic("model must be struct")
@@ -131,43 +131,43 @@ func (p *Model[T]) CreateIndex() *Model[T] {
 	return p
 }
 
-func (p *Model[T]) Database() *Database {
+func (p *Model[T, E]) Database() *Database {
 	return p.Handler.DB(p.DB, p.DatabaseOptions...)
 }
 
-func (p *Model[T]) Collection() *Collection {
+func (p *Model[T, E]) Collection() *Collection {
 	return p.Handler.DB(p.DB, p.DatabaseOptions...).C(p.C, p.CollectionOptions...).Context(p.Ctx)
 }
 
-// func (p *Model[T]) Context(ctx context.Context) *Model[T] {
+// func (p *Model[T,E]) Context(ctx context.Context) *Model[T,E] {
 // 	p.Ctx = ctx
 // 	return p
 // }
 
-func (p *Model[T]) Count(filter interface{}, opts ...*options.CountOptions) (int64, error) {
+func (p *Model[T, E]) Count(filter interface{}, opts ...*options.CountOptions) (int64, error) {
 	if filter == nil {
 		return p.Handler.DB(p.DB, p.DatabaseOptions...).C(p.C, p.CollectionOptions...).EstimatedDocumentCount()
 	}
 	return p.Handler.DB(p.DB, p.DatabaseOptions...).C(p.C, p.CollectionOptions...).CountDocuments(filter, opts...)
 }
 
-func (p *Model[T]) Set(filter interface{}, update interface{}) *UpdateMany {
+func (p *Model[T, E]) Set(filter interface{}, update interface{}) *UpdateMany {
 	return p.Handler.DB(p.DB, p.DatabaseOptions...).C(p.C, p.CollectionOptions...).UpdateMany(filter, bson.M{"$set": update}).Context(p.Ctx)
 }
 
-func (p *Model[T]) SetByID(id interface{}, update interface{}) *UpdateMany {
+func (p *Model[T, E]) SetByID(id interface{}, update interface{}) *UpdateMany {
 	return p.Handler.DB(p.DB, p.DatabaseOptions...).C(p.C, p.CollectionOptions...).UpdateMany(bson.M{"_id": id}, bson.M{"$set": update}).Context(p.Ctx)
 }
 
-func (p *Model[T]) Update(filter interface{}, update interface{}) *UpdateMany {
+func (p *Model[T, E]) Update(filter interface{}, update interface{}) *UpdateMany {
 	return p.Handler.DB(p.DB, p.DatabaseOptions...).C(p.C, p.CollectionOptions...).UpdateMany(filter, update).Context(p.Ctx)
 }
 
-func (p *Model[T]) UpdateByID(id interface{}, update interface{}) *UpdateMany {
+func (p *Model[T, E]) UpdateByID(id interface{}, update interface{}) *UpdateMany {
 	return p.Handler.DB(p.DB, p.DatabaseOptions...).C(p.C, p.CollectionOptions...).UpdateMany(bson.M{"_id": id}, update).Context(p.Ctx)
 }
 
-func (p *Model[T]) Insert(document ...*T) *InsertMany {
+func (p *Model[T, E]) Insert(document ...*E) *InsertMany {
 	var docs = make([]interface{}, len(document))
 	for i := 0; i < len(docs); i++ {
 		docs[i] = document[i]
@@ -175,63 +175,63 @@ func (p *Model[T]) Insert(document ...*T) *InsertMany {
 	return p.Handler.DB(p.DB, p.DatabaseOptions...).C(p.C, p.CollectionOptions...).InsertMany(docs).Context(p.Ctx)
 }
 
-func (p *Model[T]) Delete(filter interface{}) *DeleteMany {
+func (p *Model[T, E]) Delete(filter interface{}) *DeleteMany {
 	return p.Handler.DB(p.DB, p.DatabaseOptions...).C(p.C, p.CollectionOptions...).DeleteMany(filter).Context(p.Ctx)
 }
 
-func (p *Model[T]) DeleteByID(id interface{}) *DeleteMany {
+func (p *Model[T, E]) DeleteByID(id interface{}) *DeleteMany {
 	return p.Handler.DB(p.DB, p.DatabaseOptions...).C(p.C, p.CollectionOptions...).DeleteMany(bson.M{"_id": id}).Context(p.Ctx)
 }
 
 // FindOneAndReplaceResult is the result of a FindOneAndReplace method.
 
-func (p *Model[T]) FindOneAndReplace(filter interface{}, replacement interface{}) *FindOneAndReplaceResult[T] {
-	return &FindOneAndReplaceResult[T]{FindOneAndReplace: p.Handler.DB(p.DB, p.DatabaseOptions...).C(p.C, p.CollectionOptions...).FindOneAndReplace(filter, replacement).Context(p.Ctx)}
+func (p *Model[T, E]) FindOneAndReplace(filter interface{}, replacement interface{}) *FindOneAndReplaceResult[T, E] {
+	return &FindOneAndReplaceResult[T, E]{FindOneAndReplace: p.Handler.DB(p.DB, p.DatabaseOptions...).C(p.C, p.CollectionOptions...).FindOneAndReplace(filter, replacement).Context(p.Ctx)}
 }
 
-type FindOneAndReplaceResult[T any] struct {
+type FindOneAndReplaceResult[T ~[]*E, E any] struct {
 	*FindOneAndReplace
 }
 
-func (f *FindOneAndReplaceResult[T]) Hit(hit interface{}) *FindOneAndReplaceResult[T] {
+func (f *FindOneAndReplaceResult[T, E]) Hit(hit interface{}) *FindOneAndReplaceResult[T, E] {
 	f.option.Hint = hit
 	return f
 }
 
-func (f *FindOneAndReplaceResult[T]) Sort(sort interface{}) *FindOneAndReplaceResult[T] {
+func (f *FindOneAndReplaceResult[T, E]) Sort(sort interface{}) *FindOneAndReplaceResult[T, E] {
 	f.option.Sort = sort
 	return f
 }
 
-func (f *FindOneAndReplaceResult[T]) Projection(projection interface{}) *FindOneAndReplaceResult[T] {
+func (f *FindOneAndReplaceResult[T, E]) Projection(projection interface{}) *FindOneAndReplaceResult[T, E] {
 	f.option.Projection = projection
 	return f
 }
 
-func (f *FindOneAndReplaceResult[T]) Upsert() *FindOneAndReplaceResult[T] {
+func (f *FindOneAndReplaceResult[T, E]) Upsert() *FindOneAndReplaceResult[T, E] {
 	var t = true
 	f.option.Upsert = &t
 	return f
 }
 
-func (f *FindOneAndReplaceResult[T]) ReturnDocument() *FindOneAndReplaceResult[T] {
+func (f *FindOneAndReplaceResult[T, E]) ReturnDocument() *FindOneAndReplaceResult[T, E] {
 	var t = options.After
 	f.option.ReturnDocument = &t
 	return f
 }
 
-func (f *FindOneAndReplaceResult[T]) Context(ctx context.Context) *FindOneAndReplaceResult[T] {
+func (f *FindOneAndReplaceResult[T, E]) Context(ctx context.Context) *FindOneAndReplaceResult[T, E] {
 	f.sessionContext = ctx
 	return f
 }
 
-func (f *FindOneAndReplaceResult[T]) Option(opt *options.FindOneAndReplaceOptions) *FindOneAndReplaceResult[T] {
+func (f *FindOneAndReplaceResult[T, E]) Option(opt *options.FindOneAndReplaceOptions) *FindOneAndReplaceResult[T, E] {
 	f.option = opt
 	return f
 }
 
-func (f *FindOneAndReplaceResult[T]) Exec() (*T, error) {
-	var res T
+func (f *FindOneAndReplaceResult[T, E]) Exec() (*E, error) {
+	var res E
 	var sig = &SingleResult{singleResult: f.collection.FindOneAndReplace(f.sessionContext, f.filter, f.replacement, f.option)}
 	var err = sig.One(&res)
 	return &res, err
@@ -239,41 +239,41 @@ func (f *FindOneAndReplaceResult[T]) Exec() (*T, error) {
 
 // FindOneAndDeleteResult is the result of a FindOneAndDelete operation.
 
-func (p *Model[T]) FindOneAndDelete(filter interface{}) *FindOneAndDeleteResult[T] {
-	return &FindOneAndDeleteResult[T]{FindOneAndDelete: p.Handler.DB(p.DB, p.DatabaseOptions...).C(p.C, p.CollectionOptions...).FindOneAndDelete(filter).Context(p.Ctx)}
+func (p *Model[T, E]) FindOneAndDelete(filter interface{}) *FindOneAndDeleteResult[T, E] {
+	return &FindOneAndDeleteResult[T, E]{FindOneAndDelete: p.Handler.DB(p.DB, p.DatabaseOptions...).C(p.C, p.CollectionOptions...).FindOneAndDelete(filter).Context(p.Ctx)}
 }
 
-type FindOneAndDeleteResult[T any] struct {
+type FindOneAndDeleteResult[T ~[]*E, E any] struct {
 	*FindOneAndDelete
 }
 
-func (f *FindOneAndDeleteResult[T]) Hit(hit interface{}) *FindOneAndDeleteResult[T] {
+func (f *FindOneAndDeleteResult[T, E]) Hit(hit interface{}) *FindOneAndDeleteResult[T, E] {
 	f.option.Hint = hit
 	return f
 }
 
-func (f *FindOneAndDeleteResult[T]) Sort(sort interface{}) *FindOneAndDeleteResult[T] {
+func (f *FindOneAndDeleteResult[T, E]) Sort(sort interface{}) *FindOneAndDeleteResult[T, E] {
 	f.option.Sort = sort
 	return f
 }
 
-func (f *FindOneAndDeleteResult[T]) Projection(projection interface{}) *FindOneAndDeleteResult[T] {
+func (f *FindOneAndDeleteResult[T, E]) Projection(projection interface{}) *FindOneAndDeleteResult[T, E] {
 	f.option.Projection = projection
 	return f
 }
 
-func (f *FindOneAndDeleteResult[T]) Context(ctx context.Context) *FindOneAndDeleteResult[T] {
+func (f *FindOneAndDeleteResult[T, E]) Context(ctx context.Context) *FindOneAndDeleteResult[T, E] {
 	f.sessionContext = ctx
 	return f
 }
 
-func (f *FindOneAndDeleteResult[T]) Option(opt *options.FindOneAndDeleteOptions) *FindOneAndDeleteResult[T] {
+func (f *FindOneAndDeleteResult[T, E]) Option(opt *options.FindOneAndDeleteOptions) *FindOneAndDeleteResult[T, E] {
 	f.option = opt
 	return f
 }
 
-func (f *FindOneAndDeleteResult[T]) Exec() (*T, error) {
-	var res T
+func (f *FindOneAndDeleteResult[T, E]) Exec() (*E, error) {
+	var res E
 	var sig = &SingleResult{singleResult: f.collection.FindOneAndDelete(f.sessionContext, f.filter, f.option)}
 	var err = sig.One(&res)
 	return &res, err
@@ -281,53 +281,53 @@ func (f *FindOneAndDeleteResult[T]) Exec() (*T, error) {
 
 // FindOneAndUpdateResult is a find one and update
 
-func (p *Model[T]) FindOneAndUpdate(filter interface{}, update interface{}) *FindOneAndUpdateResult[T] {
-	return &FindOneAndUpdateResult[T]{FindOneAndUpdate: p.Handler.DB(p.DB, p.DatabaseOptions...).C(p.C, p.CollectionOptions...).FindOneAndUpdate(filter, update).Context(p.Ctx)}
+func (p *Model[T, E]) FindOneAndUpdate(filter interface{}, update interface{}) *FindOneAndUpdateResult[T, E] {
+	return &FindOneAndUpdateResult[T, E]{FindOneAndUpdate: p.Handler.DB(p.DB, p.DatabaseOptions...).C(p.C, p.CollectionOptions...).FindOneAndUpdate(filter, update).Context(p.Ctx)}
 }
 
-type FindOneAndUpdateResult[T any] struct {
+type FindOneAndUpdateResult[T ~[]*E, E any] struct {
 	*FindOneAndUpdate
 }
 
-func (f *FindOneAndUpdateResult[T]) Hit(hit interface{}) *FindOneAndUpdateResult[T] {
+func (f *FindOneAndUpdateResult[T, E]) Hit(hit interface{}) *FindOneAndUpdateResult[T, E] {
 	f.option.Hint = hit
 	return f
 }
 
-func (f *FindOneAndUpdateResult[T]) Sort(sort interface{}) *FindOneAndUpdateResult[T] {
+func (f *FindOneAndUpdateResult[T, E]) Sort(sort interface{}) *FindOneAndUpdateResult[T, E] {
 	f.option.Sort = sort
 	return f
 }
 
-func (f *FindOneAndUpdateResult[T]) Projection(projection interface{}) *FindOneAndUpdateResult[T] {
+func (f *FindOneAndUpdateResult[T, E]) Projection(projection interface{}) *FindOneAndUpdateResult[T, E] {
 	f.option.Projection = projection
 	return f
 }
 
-func (f *FindOneAndUpdateResult[T]) Upsert() *FindOneAndUpdateResult[T] {
+func (f *FindOneAndUpdateResult[T, E]) Upsert() *FindOneAndUpdateResult[T, E] {
 	var t = true
 	f.option.Upsert = &t
 	return f
 }
 
-func (f *FindOneAndUpdateResult[T]) ReturnDocument() *FindOneAndUpdateResult[T] {
+func (f *FindOneAndUpdateResult[T, E]) ReturnDocument() *FindOneAndUpdateResult[T, E] {
 	var t = options.After
 	f.option.ReturnDocument = &t
 	return f
 }
 
-func (f *FindOneAndUpdateResult[T]) Context(ctx context.Context) *FindOneAndUpdateResult[T] {
+func (f *FindOneAndUpdateResult[T, E]) Context(ctx context.Context) *FindOneAndUpdateResult[T, E] {
 	f.sessionContext = ctx
 	return f
 }
 
-func (f *FindOneAndUpdateResult[T]) Option(opt *options.FindOneAndUpdateOptions) *FindOneAndUpdateResult[T] {
+func (f *FindOneAndUpdateResult[T, E]) Option(opt *options.FindOneAndUpdateOptions) *FindOneAndUpdateResult[T, E] {
 	f.option = opt
 	return f
 }
 
-func (f *FindOneAndUpdateResult[T]) Exec() (*T, error) {
-	var res T
+func (f *FindOneAndUpdateResult[T, E]) Exec() (*E, error) {
+	var res E
 	var sig = &SingleResult{singleResult: f.collection.FindOneAndUpdate(f.sessionContext, f.filter, f.update, f.option)}
 	var err = sig.One(&res)
 	return &res, err
@@ -335,63 +335,63 @@ func (f *FindOneAndUpdateResult[T]) Exec() (*T, error) {
 
 // FindResult is the result of a Find operation.
 
-func (p *Model[T]) Find(filter interface{}) *FindResult[T] {
-	return &FindResult[T]{Find: p.Handler.DB(p.DB, p.DatabaseOptions...).C(p.C, p.CollectionOptions...).Find(filter).Context(p.Ctx)}
+func (p *Model[T, E]) Find(filter interface{}) *FindResult[T, E] {
+	return &FindResult[T, E]{Find: p.Handler.DB(p.DB, p.DatabaseOptions...).C(p.C, p.CollectionOptions...).Find(filter).Context(p.Ctx)}
 }
 
-func (p *Model[T]) FindByID(id interface{}) *FindResult[T] {
-	return &FindResult[T]{Find: p.Handler.DB(p.DB, p.DatabaseOptions...).C(p.C, p.CollectionOptions...).Find(bson.M{"_id": id}).Context(p.Ctx)}
+func (p *Model[T, E]) FindByID(id interface{}) *FindResult[T, E] {
+	return &FindResult[T, E]{Find: p.Handler.DB(p.DB, p.DatabaseOptions...).C(p.C, p.CollectionOptions...).Find(bson.M{"_id": id}).Context(p.Ctx)}
 }
 
-type FindResult[T any] struct {
+type FindResult[T ~[]*E, E any] struct {
 	Find *Find
 }
 
-func (p *FindResult[T]) Sort(sort interface{}) *FindResult[T] {
+func (p *FindResult[T, E]) Sort(sort interface{}) *FindResult[T, E] {
 	p.Find.Sort(sort)
 	return p
 }
 
-func (p *FindResult[T]) Skip(skip int64) *FindResult[T] {
+func (p *FindResult[T, E]) Skip(skip int64) *FindResult[T, E] {
 	p.Find.Skip(skip)
 	return p
 }
 
-func (p *FindResult[T]) Limit(limit int64) *FindResult[T] {
+func (p *FindResult[T, E]) Limit(limit int64) *FindResult[T, E] {
 	p.Find.Limit(limit)
 	return p
 }
 
-func (p *FindResult[T]) Projection(projection interface{}) *FindResult[T] {
+func (p *FindResult[T, E]) Projection(projection interface{}) *FindResult[T, E] {
 	p.Find.Projection(projection)
 	return p
 }
 
-func (p *FindResult[T]) Hit(res interface{}) *FindResult[T] {
+func (p *FindResult[T, E]) Hit(res interface{}) *FindResult[T, E] {
 	p.Find.Hit(res)
 	return p
 }
 
-func (p *FindResult[T]) Context(ctx context.Context) *FindResult[T] {
+func (p *FindResult[T, E]) Context(ctx context.Context) *FindResult[T, E] {
 	p.Find.Context(ctx)
 	return p
 }
 
-func (p *FindResult[T]) One() (*T, error) {
-	var res T
+func (p *FindResult[T, E]) One() (*E, error) {
+	var res E
 	var err = p.Find.One(&res)
 	return &res, err
 }
 
-func (p *FindResult[T]) All() ([]*T, error) {
-	var res []*T
+func (p *FindResult[T, E]) All() (T, error) {
+	var res T
 	var err = p.Find.All(&res)
 	return res, err
 }
 
 // AggregateResult is the result from an aggregate operation.
 
-func (p *Model[T]) Aggregate(pipeline interface{}) *AggregateResult {
+func (p *Model[T, E]) Aggregate(pipeline interface{}) *AggregateResult {
 	return &AggregateResult{Aggregate: p.Handler.DB(p.DB, p.DatabaseOptions...).C(p.C, p.CollectionOptions...).Aggregate(pipeline).Context(p.Ctx)}
 }
 

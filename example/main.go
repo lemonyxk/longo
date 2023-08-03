@@ -11,46 +11,53 @@
 package main
 
 import (
-	filter2 "github.com/lemonyxk/longo/filter"
+	"context"
+	"github.com/lemonyxk/longo"
+	"go.mongodb.org/mongo-driver/bson"
 	"log"
 )
 
-type Test2 struct {
-	ID    int     `json:"id" bson:"_id" index:"id_1"`
-	Money float64 `json:"money" bson:"money"`
-	Test  *Test2  `json:"test" bson:"test"`
+type Test2 map[string]interface{}
+
+type List []*Test2
+
+func (l List) Len() int {
+	return len(l)
 }
 
 func main() {
 
-	var filter = filter2.New()
+	//var filter = filter2.New()
+	//
+	//var data = &Test2{
+	//	ID:    1,
+	//	Money: 1.1,
+	//	Test: &Test2{
+	//		ID: 2,
+	//	},
+	//}
+	//
+	//data.Test.Test = data
+	//
+	//var res = filter.Zero(data)
+	//
+	//log.Println(res)
 
-	var data = &Test2{
-		ID:    1,
-		Money: 1.1,
-		Test: &Test2{
-			ID: 2,
-		},
+	var url = "mongodb://root:1354243@127.0.0.1:27017,127.0.0.1:27018,127.0.0.1:27019"
+	var mgo, err = longo.NewClient().Connect(&longo.Config{Url: url})
+	if err != nil {
+		panic(err)
 	}
 
-	data.Test.Test = data
+	err = mgo.RawClient().Ping(nil, longo.ReadPreference.Primary)
+	if err != nil {
+		panic(err)
+	}
 
-	var res = filter.Zero(data)
+	var test2 = longo.NewModel[List](context.Background(), mgo).DB("Test").C("User")
+	var res, _ = test2.Find(bson.M{}).All()
+	log.Println(res.Len())
 
-	log.Println(res)
-
-	//var url = "mongodb://root:1354243@127.0.0.1:27017,127.0.0.1:27018,127.0.0.1:27019"
-	//var mgo, err = longo.NewClient().Connect(&longo.Config{Url: url})
-	//if err != nil {
-	//	panic(err)
-	//}
-	//
-	//err = mgo.RawClient().Ping(nil, longo.ReadPreference.Primary)
-	//if err != nil {
-	//	panic(err)
-	//}
-	//
-	//var test2 = longo.NewModel[Test2](context.Background(), mgo).DB("Test").C("test2")
 	//
 	//a, err := test2.FindOneAndUpdate(bson.M{"_id": 96, "id": 3}, bson.M{"$set": Test2{
 	//	ID:    3,

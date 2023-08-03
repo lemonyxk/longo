@@ -21,6 +21,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+type BucketFilesList []*BucketFiles
+
 type BucketFiles struct {
 	ID         primitive.ObjectID `json:"_id" bson:"_id"`
 	Length     int                `json:"length" bson:"length"`
@@ -29,6 +31,8 @@ type BucketFiles struct {
 	Filename   string             `json:"filename" bson:"filename"`
 	Metadata   interface{}        `json:"metadata" bson:"metadata"`
 }
+
+type BucketChunksList []*BucketChunks
 
 type BucketChunks struct {
 	ID      primitive.ObjectID `json:"_id" bson:"_id"`
@@ -50,12 +54,12 @@ func (b *Bucket) New() (*gridfs.Bucket, error) {
 	return gridfs.NewBucket(b.client.Database(b.db, b.databaseOptions...))
 }
 
-func (b *Bucket) NewFilesModel(ctx context.Context, opt ...*options.CollectionOptions) *Model[BucketFiles] {
-	return NewModel[BucketFiles](ctx, b.mgo).DB(b.db, b.databaseOptions...).C("fs.files", opt...)
+func (b *Bucket) NewFilesModel(ctx context.Context, opt ...*options.CollectionOptions) *Model[BucketFilesList, BucketFiles] {
+	return NewModel[BucketFilesList](ctx, b.mgo).DB(b.db, b.databaseOptions...).C("fs.files", opt...)
 }
 
-func (b *Bucket) NewChunksModel(ctx context.Context, opt ...*options.CollectionOptions) *Model[BucketChunks] {
-	return NewModel[BucketChunks](ctx, b.mgo).DB(b.db, b.databaseOptions...).C("fs.chunks", opt...)
+func (b *Bucket) NewChunksModel(ctx context.Context, opt ...*options.CollectionOptions) *Model[BucketChunksList, BucketChunks] {
+	return NewModel[BucketChunksList](ctx, b.mgo).DB(b.db, b.databaseOptions...).C("fs.chunks", opt...)
 }
 
 // func (b *Bucket) Context(ctx context.Context) *Bucket {
