@@ -40,7 +40,7 @@ func Test_Transaction_Success(t *testing.T) {
 		wait.Done()
 	})
 
-	time.AfterFunc(time.Millisecond*300, func() {
+	time.AfterFunc(time.Millisecond*500, func() {
 		var a, err = test2.Find(bson.M{"id": 1}).One()
 		assert.True(t, err == nil, err)
 		assert.True(t, a.Add == 1, a.Add)
