@@ -72,7 +72,7 @@ type Model[T ~[]*E, E any] struct {
 // 	return p
 // }
 
-func (p *Model[T, E]) CreateIndex() *Model[T, E] {
+func (p *Model[T, E]) CreateIndex() error {
 	var t E
 	var srcType = reflect.TypeOf(t)
 	if srcType.Kind() != reflect.Struct {
@@ -124,11 +124,11 @@ func (p *Model[T, E]) CreateIndex() *Model[T, E] {
 	if len(create) > 0 {
 		_, err := p.Collection().Indexes().CreateMany(create)
 		if err != nil {
-			panic(err)
+			return err
 		}
 	}
 
-	return p
+	return nil
 }
 
 func (p *Model[T, E]) Database() *Database {

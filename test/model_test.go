@@ -13,6 +13,7 @@ package test
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/lemonyxk/longo"
 	"github.com/stretchr/testify/assert"
@@ -244,6 +245,8 @@ func Test_Model_CreateIndex(t *testing.T) {
 	})
 
 	test.CreateIndex()
+
+	time.Sleep(time.Second * 3)
 
 	var result []longo.Index
 	err := test.Collection().Indexes().List().All(context.Background(), &result)
