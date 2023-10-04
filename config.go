@@ -27,5 +27,5 @@ type Config struct {
 	ReadConcern    *readconcern.ReadConcern
 	WriteConcern   *WriteConcern
 	ConnectTimeout time.Duration
-	Register       *bsoncodec.RegistryBuilder
+	Register       *bsoncodec.Registry
 }

@@ -34,17 +34,20 @@ func NewReadPreference(readPreference string) *readpref.ReadPref {
 }
 
 func NewReadConcern(readConcern string) *readconcern.ReadConcern {
-	return readconcern.New(readconcern.Level(strings.ToLower(readConcern)))
+	return &readconcern.ReadConcern{Level: strings.ToLower(readConcern)}
 }
 
 func NewWriteConcern(writeConcern WriteConcern) *writeconcern.WriteConcern {
-	var opts []writeconcern.Option
-	if writeConcern.W == -1 {
-		opts = append(opts, writeconcern.WMajority())
+	var wc = writeconcern.WriteConcern{}
+
+	if writeConcern.W == Majority {
+		wc.W = "majority"
 	} else {
-		opts = append(opts, writeconcern.W(writeConcern.W))
+		wc.W = writeConcern.W
 	}
-	opts = append(opts, writeconcern.J(writeConcern.J))
-	opts = append(opts, writeconcern.WTimeout(writeConcern.WTimeout))
-	return writeconcern.New(opts...)
+
+	wc.Journal = &writeConcern.J
+	wc.WTimeout = writeConcern.WTimeout
+
+	return &wc
 }

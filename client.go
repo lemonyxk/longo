@@ -28,7 +28,7 @@ func (c *Client) SetReadPreference(readPreference string) {
 	c.config.ReadPreference = NewReadPreference(readPreference)
 }
 
-func (c *Client) SetRegister(register *bsoncodec.RegistryBuilder) {
+func (c *Client) SetRegister(register *bsoncodec.Registry) {
 	c.config.Register = register
 }
 
@@ -96,7 +96,7 @@ func (c *Client) Connect(config *Config, opts ...*options.ClientOptions) (*Mgo, 
 	var option = options.Client().ApplyURI(c.config.Url)
 
 	if config.Register != nil {
-		option.SetRegistry(config.Register.Build())
+		option.SetRegistry(config.Register)
 	}
 
 	opts = append(opts, option)

@@ -14,12 +14,18 @@ import (
 	"time"
 )
 
+type W int
+
+const (
+	Majority W = -1
+)
+
 // WriteConcern
 // W write nodes
 // J write logs
 // WTimeout write wait timeout, just useful when w > 1
 type WriteConcern struct {
-	W        int
+	W        W
 	J        bool
 	WTimeout time.Duration
 }

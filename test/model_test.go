@@ -21,6 +21,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+
+
 func Test_Model_Insert(t *testing.T) {
 	var test = longo.NewModel[[]*TestDB](context.Background(), mgo).DB("Test").C("Test_Model_Insert")
 	_, err := test.Insert(&TestDB{ID: 1, Add: 1}).Exec()

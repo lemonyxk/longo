@@ -340,7 +340,7 @@ func Test_Transaction_Set_Wait(t *testing.T) {
 		time.Sleep(time.Millisecond * 1000)
 		// will wait for transaction until timeout
 		_, err := test.FindOneAndUpdate(bson.M{"id": 1, "add": 1}, bson.M{"$set": bson.M{"add": 2}}).Exec()
-		assert.True(t, err == mongo.ErrNoDocuments, err)
+		assert.True(t, errors.Is(err, mongo.ErrNoDocuments), err)
 		wait.Done()
 	}()
 
