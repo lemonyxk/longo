@@ -13,7 +13,6 @@ package main
 import (
 	"context"
 	"github.com/lemonyxk/longo"
-	"go.mongodb.org/mongo-driver/bson"
 	"log"
 )
 
@@ -54,9 +53,36 @@ func main() {
 		panic(err)
 	}
 
-	var test2 = longo.NewModel[List](context.Background(), mgo).DB("Test").C("User")
-	var res, _ = test2.Find(bson.M{}).All()
-	log.Println(res.Len())
+	//res, err := test2.Find(bson.M{"a":1}).All()
+	//log.Println(res.Len(), err)
+
+	for i := 0; i < 100; i++ {
+		var index = i
+		var test2 = longo.NewModel[List](context.Background(), mgo).DB("Test").C("User")
+		_, err = test2.Insert(&Test2{
+			"id": index,
+		}).Exec()
+		if err != nil {
+			log.Println(err)
+		}
+
+		log.Println(index)
+
+		//var readPreference = &options.DatabaseOptions{ReadPreference: longo.ReadPreference.Primary}
+		//var test2 = longo.NewModel[List](context.Background(), mgo).DB("Test", readPreference).C("User")
+		//uploadPart, err := test2.Find(bson.M{"id": i}).All()
+		//if err != nil {
+		//	// if err try again after 10 minute
+		//	log.Println(err)
+		//}
+		//if uploadPart.Len() == 0 {
+		//	// if uploadPart.Len() == 0 try again after 10 minute
+		//	log.Println("uploadPart.Len() == 0")
+		//}
+
+	}
+
+	select {}
 
 	//
 	//a, err := test2.FindOneAndUpdate(bson.M{"_id": 96, "id": 3}, bson.M{"$set": Test2{

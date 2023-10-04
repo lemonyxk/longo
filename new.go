@@ -43,7 +43,7 @@ func NewWriteConcern(writeConcern WriteConcern) *writeconcern.WriteConcern {
 	if writeConcern.W == Majority {
 		wc.W = "majority"
 	} else {
-		wc.W = writeConcern.W
+		wc.W = int(writeConcern.W)
 	}
 
 	wc.Journal = &writeConcern.J
