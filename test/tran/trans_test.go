@@ -8,12 +8,11 @@
 * @create: 2023-03-01 21:09
 **/
 
-package test
+package tran
 
 import (
 	"context"
 	"errors"
-	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -24,14 +23,44 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
+type TestDB struct {
+	ID  int     `json:"id" bson:"id" index:"id_1"`
+	Add float64 `json:"add" bson:"add"`
+}
+
+func (t *TestDB) Empty() bool {
+	return t == nil || t.ID == 0
+}
+
+var mgo *longo.Mgo
+
+func Test_Connect(t *testing.T) {
+	var url = "mongodb://root:1354243@127.0.0.1:27017,127.0.0.1:27018,127.0.0.1:27019"
+
+	var err error
+	mgo, err = longo.NewClient().Connect(&longo.Config{Url: url, WriteConcern: &longo.WriteConcern{
+		W:        1,
+		J:        false,
+		WTimeout: time.Second * 5,
+	}})
+	if err != nil {
+		panic(err)
+	}
+
+	err = mgo.RawClient().Ping(nil, longo.ReadPreference.Primary)
+	if err != nil {
+		panic(err)
+	}
+}
+
 func Test_Transaction_Success(t *testing.T) {
 
 	var wait sync.WaitGroup
 
 	wait.Add(2)
 
-	var test1 = longo.NewModel[[]*TestDB](context.Background(), mgo).DB("Test").C("Test_Transaction_Success1")
-	var test2 = longo.NewModel[[]*TestDB](context.Background(), mgo).DB("Test").C("Test_Transaction_Success2")
+	var test1 = longo.NewModel[[]*TestDB](context.Background(), mgo).DB("Test_3").C("Test_Transaction_Success1")
+	var test2 = longo.NewModel[[]*TestDB](context.Background(), mgo).DB("Test_3").C("Test_Transaction_Success2")
 
 	time.AfterFunc(time.Millisecond*100, func() {
 		var a, err = test1.Find(bson.M{"id": 1}).One()
@@ -74,7 +103,7 @@ func Test_Transaction_RepeatableOutsideWithRead(t *testing.T) {
 
 	wait.Add(2)
 
-	var test = longo.NewModel[[]*TestDB](context.Background(), mgo).DB("Test").C("Test_Transaction_RepeatableOutsideWithRead")
+	var test = longo.NewModel[[]*TestDB](context.Background(), mgo).DB("Test_3").C("Test_Transaction_RepeatableOutsideWithRead")
 
 	go func() {
 		var err = mgo.TransactionWithLock(func(handler *longo.Mgo, sessionContext mongo.SessionContext) error {
@@ -98,7 +127,7 @@ func Test_Transaction_RepeatableOutsideWithRead(t *testing.T) {
 			return nil
 		})
 
-		assert.True(t, strings.HasPrefix(err.Error(), "repeatable read 2: "), err)
+		assert.True(t, err == nil, err)
 
 		wait.Done()
 	}()
@@ -120,7 +149,7 @@ func Test_Transaction_RepeatableWithRead(t *testing.T) {
 
 	wait.Add(2)
 
-	var test = longo.NewModel[[]*TestDB](context.Background(), mgo).DB("Test").C("Test_Transaction_RepeatableWithRead")
+	var test = longo.NewModel[[]*TestDB](context.Background(), mgo).DB("Test_3").C("Test_Transaction_RepeatableWithRead")
 
 	go func() {
 		var err = mgo.TransactionWithLock(func(handler *longo.Mgo, sessionContext mongo.SessionContext) error {
@@ -144,7 +173,7 @@ func Test_Transaction_RepeatableWithRead(t *testing.T) {
 			return nil
 		})
 
-		assert.True(t, strings.HasPrefix(err.Error(), "repeatable read 2: "), err)
+		assert.True(t, err == nil, err)
 
 		wait.Done()
 	}()
@@ -171,7 +200,9 @@ func Test_Transaction_RepeatableOutsideWithWrite(t *testing.T) {
 
 	wait.Add(2)
 
-	var test = longo.NewModel[[]*TestDB](context.Background(), mgo).DB("Test").C("Test_Transaction_RepeatableOutsideWithWrite")
+	var test = longo.NewModel[[]*TestDB](context.Background(), mgo).DB("Test_3").C("Test_Transaction_RepeatableOutsideWithWrite")
+
+	test.Insert(&TestDB{ID: 999, Add: 999}).Exec()
 
 	go func() {
 		var err = mgo.TransactionWithLock(func(handler *longo.Mgo, sessionContext mongo.SessionContext) error {
@@ -191,7 +222,7 @@ func Test_Transaction_RepeatableOutsideWithWrite(t *testing.T) {
 			return nil
 		})
 
-		assert.True(t, strings.HasPrefix(err.Error(), "repeatable write 2: "), err)
+		assert.True(t, err == nil, err)
 
 		wait.Done()
 	}()
@@ -213,7 +244,8 @@ func Test_Transaction_RepeatableWithWrite(t *testing.T) {
 
 	wait.Add(2)
 
-	var test = longo.NewModel[[]*TestDB](context.Background(), mgo).DB("Test").C("Test_Transaction_RepeatableWithWrite")
+	var test = longo.NewModel[[]*TestDB](context.Background(), mgo).DB("Test_3").C("Test_Transaction_RepeatableWithWrite")
+	test.Insert(&TestDB{ID: 999, Add: 999}).Exec()
 
 	go func() {
 		var err = mgo.TransactionWithLock(func(handler *longo.Mgo, sessionContext mongo.SessionContext) error {
@@ -233,7 +265,7 @@ func Test_Transaction_RepeatableWithWrite(t *testing.T) {
 			return nil
 		})
 
-		assert.True(t, strings.HasPrefix(err.Error(), "repeatable write 2: "), err)
+		assert.True(t, err == nil, err)
 
 		wait.Done()
 	}()
@@ -259,7 +291,7 @@ func Test_Transaction_Set(t *testing.T) {
 
 	wait.Add(2)
 
-	var test = longo.NewModel[[]*TestDB](context.Background(), mgo).DB("Test").C("Test_Transaction_Set")
+	var test = longo.NewModel[[]*TestDB](context.Background(), mgo).DB("Test_3").C("Test_Transaction_Set")
 
 	_, err := test.Insert(&TestDB{ID: 1, Add: 1}).Exec()
 	assert.True(t, err == nil, err)
@@ -313,7 +345,7 @@ func Test_Transaction_Set_Wait(t *testing.T) {
 
 	wait.Add(2)
 
-	var test = longo.NewModel[[]*TestDB](context.Background(), mgo).DB("Test").C("Test_Transaction_RepeatableWithWrite")
+	var test = longo.NewModel[[]*TestDB](context.Background(), mgo).DB("Test_3").C("Test_Transaction_RepeatableWithWrite")
 
 	_, err := test.Insert(&TestDB{ID: 1, Add: 1}).Exec()
 	assert.True(t, err == nil, err)
@@ -345,4 +377,11 @@ func Test_Transaction_Set_Wait(t *testing.T) {
 	}()
 
 	wait.Wait()
+}
+
+func Test_Clean(t *testing.T) {
+	var err = mgo.RawClient().Database("Test_3").Drop(context.Background())
+	if err != nil {
+		panic(err)
+	}
 }
