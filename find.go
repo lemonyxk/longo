@@ -12,6 +12,7 @@ package longo
 
 import (
 	"context"
+	"reflect"
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -65,7 +66,8 @@ func (f *Find) Option(opt *options.FindOptions) *Find {
 }
 
 func (f *Find) Count(opts ...*options.CountOptions) (int64, error) {
-	if f.filter == nil {
+	var ref = reflect.ValueOf(f.filter)
+	if ref.IsNil() || (ref.Kind() == reflect.Map && ref.Len() == 0) {
 		return f.collection.EstimatedDocumentCount(f.sessionContext)
 	}
 	return f.collection.CountDocuments(f.sessionContext, f.filter, opts...)

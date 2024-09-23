@@ -145,7 +145,8 @@ func (p *Model[T, E]) Collection() *Collection {
 // }
 
 func (p *Model[T, E]) Count(filter interface{}, opts ...*options.CountOptions) (int64, error) {
-	if filter == nil {
+	var ref = reflect.ValueOf(filter)
+	if ref.IsNil() || (ref.Kind() == reflect.Map && ref.Len() == 0) {
 		return p.Handler.DB(p.DB, p.DatabaseOptions...).C(p.C, p.CollectionOptions...).EstimatedDocumentCount()
 	}
 	return p.Handler.DB(p.DB, p.DatabaseOptions...).C(p.C, p.CollectionOptions...).CountDocuments(filter, opts...)
