@@ -12,6 +12,7 @@ package longo
 
 import (
 	"context"
+	"go.mongodb.org/mongo-driver/mongo"
 	"reflect"
 	"strings"
 
@@ -182,6 +183,10 @@ func (p *Model[T, E]) Delete(filter interface{}) *DeleteMany {
 
 func (p *Model[T, E]) DeleteByID(id interface{}) *DeleteMany {
 	return p.Handler.DB(p.DB, p.DatabaseOptions...).C(p.C, p.CollectionOptions...).DeleteMany(bson.M{"_id": id}).Context(p.Ctx)
+}
+
+func (p *Model[T, E]) BulkWrite(models []mongo.WriteModel) *BulkWrite {
+	return p.Handler.DB(p.DB, p.DatabaseOptions...).C(p.C, p.CollectionOptions...).BulkWrite(models).Context(p.Ctx)
 }
 
 // FindOneAndReplaceResult is the result of a FindOneAndReplace method.

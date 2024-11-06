@@ -148,3 +148,9 @@ func (q *Collection) UpdateMany(filter interface{}, update interface{}) *UpdateM
 func (q *Collection) ReplaceOne(filter interface{}, update interface{}) *ReplaceOne {
 	return NewReplaceOne(q.context, q.client.Database(q.db, q.databaseOptions...).Collection(q.collection, q.collectionOptions...), filter, update)
 }
+
+// BulkWrite
+// WRITE
+func (q *Collection) BulkWrite(models []mongo.WriteModel) *BulkWrite {
+	return NewBulkWrite(q.context, q.client.Database(q.db, q.databaseOptions...).Collection(q.collection, q.collectionOptions...), models)
+}

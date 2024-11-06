@@ -12,6 +12,7 @@ package model
 
 import (
 	"context"
+	"go.mongodb.org/mongo-driver/mongo"
 	"testing"
 	"time"
 
@@ -269,17 +270,95 @@ func Test_Model_FindOneAndReturnDocument(t *testing.T) {
 	assert.True(t, a.Add == 3, a.Add)
 }
 
+func Test_Model_BulkInsert(t *testing.T) {
+	var test = longo.NewModel[[]*TestDB](context.Background(), mgo).DB("Test_2").C("Test_Model_BulkWrite", &options.CollectionOptions{
+		ReadPreference: longo.ReadPreference.Primary,
+	})
+
+	models := []mongo.WriteModel{
+		mongo.NewInsertOneModel().SetDocument(
+			bson.M{
+				"_id": `1111111`,
+			},
+		),
+		mongo.NewInsertOneModel().SetDocument(
+			bson.M{
+				"_id": `2222222`,
+			},
+		),
+	}
+
+	res, err := test.BulkWrite(models).Exec()
+	assert.True(t, err == nil, err)
+	assert.True(t, res.InsertedCount == 2, res)
+}
+
+func Test_Model_BulkUpdate(t *testing.T) {
+	var test = longo.NewModel[[]*TestDB](context.Background(), mgo).DB("Test_2").C("Test_Model_BulkWrite", &options.CollectionOptions{
+		ReadPreference: longo.ReadPreference.Primary,
+	})
+
+	models := []mongo.WriteModel{
+		mongo.NewUpdateOneModel().SetFilter(
+			bson.M{
+				"_id": `1111111`,
+			},
+		).SetUpdate(
+			bson.M{
+				"$set": bson.M{"id": 1},
+			},
+		),
+		mongo.NewUpdateOneModel().SetFilter(
+			bson.M{
+				"_id": `2222222`,
+			},
+		).SetUpdate(
+			bson.M{
+				"$set": bson.M{"id": 2},
+			},
+		),
+	}
+
+	res, err := test.BulkWrite(models).Exec()
+	assert.True(t, err == nil, err)
+	assert.True(t, res.ModifiedCount == 2, res)
+}
+
+func Test_Model_BulkDelete(t *testing.T) {
+	var test = longo.NewModel[[]*TestDB](context.Background(), mgo).DB("Test_2").C("Test_Model_BulkWrite", &options.CollectionOptions{
+		ReadPreference: longo.ReadPreference.Primary,
+	})
+
+	models := []mongo.WriteModel{
+		mongo.NewDeleteOneModel().SetFilter(
+			bson.M{
+				"_id": `1111111`,
+			},
+		),
+		mongo.NewDeleteOneModel().SetFilter(
+			bson.M{
+				"_id": `2222222`,
+			},
+		),
+	}
+
+	res, err := test.BulkWrite(models).Exec()
+	assert.True(t, err == nil, err)
+	assert.True(t, res.DeletedCount == 2, res)
+}
+
 func Test_Model_CreateIndex(t *testing.T) {
 	var test = longo.NewModel[[]*TestDB](context.Background(), mgo).DB("Test_2").C("Test_Model_CreateIndex", &options.CollectionOptions{
 		ReadPreference: longo.ReadPreference.Primary,
 	})
 
-	test.CreateIndex()
+	var err = test.CreateIndex()
+	assert.True(t, err == nil, err)
 
 	time.Sleep(time.Second * 3)
 
 	var result []longo.Index
-	err := test.Collection().Indexes().List().All(context.Background(), &result)
+	err = test.Collection().Indexes().List().All(context.Background(), &result)
 	assert.True(t, err == nil, err)
 	assert.True(t, len(result) == 2, len(result))
 	assert.True(t, result[1].Key["id"] == 1, result[1].Key["id"])

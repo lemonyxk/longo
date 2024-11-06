@@ -12,9 +12,10 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"github.com/lemonyxk/longo"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
+	"log"
 	"time"
 )
 
@@ -55,22 +56,107 @@ func main() {
 		panic(err)
 	}
 
-	//res, err := test2.Find(bson.M{"a":1}).All()
-	//log.Println(res.Len(), err)
-
 	var test = longo.NewModel[[]*Test2](context.Background(), mgo).DB("test").C("test")
 
-	res, err := test.Update(bson.M{"_id": 1}, bson.M{"$set": bson.M{"id": 1, "add": 1}}).Exec()
-	if err != nil {
-		panic(err)
-	}
-	fmt.Printf("%+v\n", res)
+	_ = test
 
-	a, err := test.Find(bson.M{"_id": 999}).All()
+	// test1
+	var url1 = "mongodb://root:1354243@127.0.0.1:27017,127.0.0.1:27018,127.0.0.1:27019"
+	mgo1, err := longo.NewClient().Connect(&longo.Config{Url: url1, WriteConcern: &longo.WriteConcern{W: -1, J: true, WTimeout: 10 * time.Second}})
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("%+v\n", a)
+
+	err = mgo1.RawClient().Ping(nil, longo.ReadPreference.Primary)
+	if err != nil {
+		panic(err)
+	}
+
+	var test1 = longo.NewModel[[]*Test2](context.Background(), mgo1).DB("test").C("test")
+
+	_ = test1
+
+	//res, err := test.Update(bson.M{"_id": 1}, bson.M{"$set": bson.M{"id": 1, "add": 1}}).Exec()
+	//if err != nil {
+	//	panic(err)
+	//}
+	//fmt.Printf("%+v\n", res)
+	//
+	//a, err := test.Find(bson.M{"_id": 999}).All()
+	//if err != nil {
+	//	panic(err)
+	//}
+	//fmt.Printf("%+v\n", a)
+
+	models := []mongo.WriteModel{
+		mongo.NewUpdateOneModel().SetFilter(
+			bson.M{
+				"_id": `1111111`,
+			},
+		).SetUpdate(
+			bson.M{
+				"$set": bson.M{"id1": 1},
+			},
+		),
+		mongo.NewUpdateOneModel().SetFilter(
+			bson.M{
+				"_id": `2222222`,
+			},
+		).SetUpdate(
+			bson.M{
+				"$set": bson.M{"id1": 2},
+			},
+		),
+	}
+
+	res, err := test1.BulkWrite(models).Exec()
+	if err != nil {
+		panic(err)
+	}
+
+	log.Printf("%+v\n", res)
+
+	//var wait sync.WaitGroup
+	//
+	//wait.Add(3000)
+	//
+	//go func() {
+	//	for i := 0; i < 1500; i++ {
+	//		go func() {
+	//			var err = mgo.RawClient().UseSession(context.Background(), func(sessionContext mongo.SessionContext) error {
+	//				_, err := test.FindOneAndUpdate(bson.M{"_id": 1, "add": bson.M{"$gt": -0}}, bson.M{"$inc": bson.M{"add": -1}}).Context(sessionContext).ReturnDocument().Exec()
+	//				if err != nil {
+	//					return err
+	//				}
+	//				return nil
+	//			})
+	//			if err != nil {
+	//				log.Println(err)
+	//			}
+	//			wait.Done()
+	//		}()
+	//	}
+	//}()
+	//
+	//go func() {
+	//	for i := 0; i < 1500; i++ {
+	//		go func() {
+	//			var err = mgo1.RawClient().UseSession(context.Background(), func(sessionContext mongo.SessionContext) error {
+	//				_, err := test1.FindOneAndUpdate(bson.M{"_id": 1, "sub": bson.M{"$gt": -0}}, bson.M{"$inc": bson.M{"sub": -1}}).Context(sessionContext).ReturnDocument().Exec()
+	//				if err != nil {
+	//					return err
+	//				}
+	//				return nil
+	//			})
+	//			if err != nil {
+	//				log.Println(err)
+	//			}
+	//			wait.Done()
+	//		}()
+	//	}
+	//}()
+	//
+	//wait.Wait()
 
 	//var wait sync.WaitGroup
 	//
