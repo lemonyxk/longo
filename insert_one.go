@@ -12,6 +12,7 @@ package longo
 
 import (
 	"context"
+	"fmt"
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -39,5 +40,12 @@ func (i *InsertOne) Context(ctx context.Context) *InsertOne {
 }
 
 func (i *InsertOne) Exec() (*mongo.InsertOneResult, error) {
-	return i.collection.InsertOne(i.sessionContext, i.document, i.insertOneOption)
+	var res, err = i.collection.InsertOne(i.sessionContext, i.document, i.insertOneOption)
+	if err != nil {
+		return nil, err
+	}
+	if res.InsertedID == nil {
+		return nil, fmt.Errorf("insert one error: %s", "no id")
+	}
+	return res, nil
 }

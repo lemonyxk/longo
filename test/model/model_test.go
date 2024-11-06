@@ -71,11 +71,11 @@ func Test_Model_Find(t *testing.T) {
 	})
 	_, err := test.Insert(&TestDB{ID: 1, Add: 1}, &TestDB{ID: 2, Add: 2}).Exec()
 	assert.True(t, err == nil, err)
-	a, err := test.Find(bson.M{"id": 1}).One()
+	a, err := test.FindOne(bson.M{"id": 1}).One()
 	assert.True(t, err == nil, err)
 	assert.True(t, a.Add == 1, a.Add)
 
-	a, err = test.Find(bson.M{"id": 2}).One()
+	a, err = test.FindOne(bson.M{"id": 2}).One()
 	assert.True(t, err == nil, err)
 	assert.True(t, a.Add == 2, a.Add)
 }
@@ -101,7 +101,7 @@ func Test_Model_Update(t *testing.T) {
 	assert.True(t, err == nil, err)
 	_, err = test.Set(bson.M{"id": 1}, bson.M{"add": 3}).Exec()
 	assert.True(t, err == nil, err)
-	a, err := test.Find(bson.M{"id": 1}).One()
+	a, err := test.FindOne(bson.M{"id": 1}).One()
 	assert.True(t, err == nil, err)
 	assert.True(t, a.Add == 3, a.Add)
 }
@@ -154,7 +154,7 @@ func Test_Model_Count(t *testing.T) {
 	})
 	_, err := test.Insert(&TestDB{ID: 1, Add: 1}, &TestDB{ID: 2, Add: 2}).Exec()
 	assert.True(t, err == nil, err)
-	a, err := test.Count(nil)
+	a, err := test.Count(bson.M{})
 	assert.True(t, err == nil, err)
 	assert.True(t, a == 2, a)
 }
@@ -191,12 +191,12 @@ func Test_Model_AggregateOne(t *testing.T) {
 	})
 	_, err := test.Insert(&TestDB{ID: 1, Add: 1}, &TestDB{ID: 2, Add: 2}).Exec()
 	assert.True(t, err == nil, err)
-	var a struct {
+	var a []struct {
 		Add int `bson:"add"`
 	}
-	err = test.Aggregate(bson.A{bson.M{"$match": bson.M{"id": 1}}}).One(&a)
+	err = test.Aggregate(bson.A{bson.M{"$match": bson.M{"id": 1}}}).All(&a)
 	assert.True(t, err == nil, err)
-	assert.True(t, a.Add == 1, a.Add)
+	assert.True(t, a[0].Add == 1, a[0].Add)
 }
 
 func Test_Model_FindOneAndUpdate(t *testing.T) {
@@ -285,7 +285,6 @@ func Test_Model_CreateIndex(t *testing.T) {
 	assert.True(t, result[1].Key["id"] == 1, result[1].Key["id"])
 	assert.True(t, result[1].Name == "id_1", result[1].Name)
 }
-
 
 func Test_Clean(t *testing.T) {
 	var err = mgo.RawClient().Database("Test_2").Drop(context.Background())

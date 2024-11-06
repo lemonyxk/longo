@@ -63,14 +63,14 @@ func Test_Transaction_Success(t *testing.T) {
 	var test2 = longo.NewModel[[]*TestDB](context.Background(), mgo).DB("Test_3").C("Test_Transaction_Success2")
 
 	time.AfterFunc(time.Millisecond*100, func() {
-		var a, err = test1.Find(bson.M{"id": 1}).One()
-		assert.True(t, err == nil, err)
+		var a, err = test1.FindOne(bson.M{"id": 1}).One()
+		assert.True(t, err == mongo.ErrNoDocuments, err)
 		assert.True(t, a.Add != 1, a.Add)
 		wait.Done()
 	})
 
 	time.AfterFunc(time.Millisecond*500, func() {
-		var a, err = test2.Find(bson.M{"id": 1}).One()
+		var a, err = test2.FindOne(bson.M{"id": 1}).One()
 		assert.True(t, err == nil, err)
 		assert.True(t, a.Add == 1, a.Add)
 		wait.Done()

@@ -49,8 +49,8 @@ func (f *Aggregate) All(result interface{}) error {
 	return res.All(f.sessionContext, result)
 }
 
-func (f *Aggregate) One(result interface{}) error {
-	cursor, err := f.collection.Aggregate(f.sessionContext, f.pipeline, f.option)
-	var res = &MultiResult{cursor: cursor, err: err}
-	return res.One(f.sessionContext, result)
-}
+//func (f *Aggregate) One(result interface{}) error {
+//	cursor, err := f.collection.Aggregate(f.sessionContext, f.pipeline, f.option)
+//	var res = &MultiResult{cursor: cursor, err: err}
+//	return res.One(f.sessionContext, result)
+//}

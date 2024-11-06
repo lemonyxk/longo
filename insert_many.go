@@ -12,6 +12,7 @@ package longo
 
 import (
 	"context"
+	"fmt"
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -39,5 +40,12 @@ func (i *InsertMany) Context(ctx context.Context) *InsertMany {
 }
 
 func (i *InsertMany) Exec() (*mongo.InsertManyResult, error) {
-	return i.collection.InsertMany(i.sessionContext, i.document, i.insertManyOption)
+	var res, err = i.collection.InsertMany(i.sessionContext, i.document, i.insertManyOption)
+	if err != nil {
+		return nil, err
+	}
+	if len(res.InsertedIDs) == 0 {
+		return nil, fmt.Errorf("insert many error: %s", "no id")
+	}
+	return res, nil
 }

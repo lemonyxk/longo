@@ -12,6 +12,7 @@ package longo
 
 import (
 	"context"
+	"fmt"
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -22,6 +23,8 @@ type DeleteOne struct {
 	deleteOneOption *options.DeleteOptions
 	filter          interface{}
 	sessionContext  context.Context
+
+	mustDeleted bool
 }
 
 func NewDeleteOne(ctx context.Context, collection *mongo.Collection, filter interface{}) *DeleteOne {
@@ -38,6 +41,20 @@ func (i *DeleteOne) Context(ctx context.Context) *DeleteOne {
 	return i
 }
 
+func (i *DeleteOne) MustDeleted() *DeleteOne {
+	i.mustDeleted = true
+	return i
+}
+
 func (i *DeleteOne) Exec() (*mongo.DeleteResult, error) {
-	return i.collection.DeleteOne(i.sessionContext, i.filter, i.deleteOneOption)
+	var res, err = i.collection.DeleteOne(i.sessionContext, i.filter, i.deleteOneOption)
+	if err != nil {
+		return nil, err
+	}
+	if i.mustDeleted {
+		if res.DeletedCount == 0 {
+			return nil, fmt.Errorf("no document deleted")
+		}
+	}
+	return res, nil
 }

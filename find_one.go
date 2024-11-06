@@ -59,7 +59,7 @@ func (f *FindOne) Option(opt *options.FindOneOptions) *FindOne {
 	return f
 }
 
-func (f *FindOne) Exec(result interface{}) error {
+func (f *FindOne) One(result interface{}) error {
 	if f.err != nil {
 		return f.err
 	}

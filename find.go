@@ -82,11 +82,11 @@ func (f *Find) All(result interface{}) error {
 	return res.All(f.sessionContext, result)
 }
 
-func (f *Find) One(result interface{}) error {
-	if f.err != nil {
-		return f.err
-	}
-	cursor, err := f.collection.Find(f.sessionContext, f.filter, f.option)
-	var res = &MultiResult{cursor: cursor, err: err}
-	return res.One(f.sessionContext, result)
-}
+//func (f *Find) One(result interface{}) error {
+//	if f.err != nil {
+//		return f.err
+//	}
+//	cursor := f.collection.FindOne(f.sessionContext, f.filter, f.option)
+//	var res = &SingleResult{singleResult: cursor}
+//	return res.One(result)
+//}

@@ -81,15 +81,24 @@ func (b *Bucket) DownloadFile(id primitive.ObjectID) *DownloadFile {
 
 func (b *Bucket) FindOne(filter interface{}) *FindOne {
 	var bucket, err = gridfs.NewBucket(b.client.Database(b.db, b.databaseOptions...))
+	if bucket == nil {
+		panic(err)
+	}
 	return &FindOne{bucket.GetFilesCollection(), &options.FindOneOptions{}, filter, context.Background(), err}
 }
 
 func (b *Bucket) FindByID(id primitive.ObjectID) *FindOne {
 	var bucket, err = gridfs.NewBucket(b.client.Database(b.db))
+	if bucket == nil {
+		panic(err)
+	}
 	return &FindOne{bucket.GetFilesCollection(), &options.FindOneOptions{}, bson.M{"_id": id}, context.Background(), err}
 }
 
 func (b *Bucket) Find(filter interface{}) *Find {
 	var bucket, err = gridfs.NewBucket(b.client.Database(b.db))
+	if bucket == nil {
+		panic(err)
+	}
 	return &Find{bucket.GetFilesCollection(), &options.FindOptions{}, filter, context.Background(), err}
 }

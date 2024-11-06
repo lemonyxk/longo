@@ -30,7 +30,7 @@ func (c *Command) All(result interface{}) error {
 }
 
 func (c *Command) One(result interface{}) error {
-	cursor, err := c.db.RunCommandCursor(context.Background(), c.command, c.option...)
-	var res = &MultiResult{cursor: cursor, err: err}
-	return res.One(context.Background(), result)
+	cursor := c.db.RunCommand(context.Background(), c.command, c.option...)
+	var res = &SingleResult{singleResult: cursor}
+	return res.One(result)
 }

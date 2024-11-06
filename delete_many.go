@@ -12,7 +12,7 @@ package longo
 
 import (
 	"context"
-
+	"fmt"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -22,6 +22,8 @@ type DeleteMany struct {
 	deleteManyOption *options.DeleteOptions
 	filter           interface{}
 	sessionContext   context.Context
+
+	mustDeleted bool
 }
 
 func NewDeleteMany(ctx context.Context, collection *mongo.Collection, filter interface{}) *DeleteMany {
@@ -38,6 +40,20 @@ func (i *DeleteMany) Context(ctx context.Context) *DeleteMany {
 	return i
 }
 
+func (i *DeleteMany) MustDeleted() *DeleteMany {
+	i.mustDeleted = true
+	return i
+}
+
 func (i *DeleteMany) Exec() (*mongo.DeleteResult, error) {
-	return i.collection.DeleteMany(i.sessionContext, i.filter, i.deleteManyOption)
+	var res, err = i.collection.DeleteMany(i.sessionContext, i.filter, i.deleteManyOption)
+	if err != nil {
+		return nil, err
+	}
+	if i.mustDeleted {
+		if res.DeletedCount == 0 {
+			return nil, fmt.Errorf("no document deleted")
+		}
+	}
+	return res, nil
 }

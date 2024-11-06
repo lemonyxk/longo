@@ -340,10 +340,6 @@ func (p *Model[T, E]) Find(filter interface{}) *FindResult[T, E] {
 	return &FindResult[T, E]{Find: p.Handler.DB(p.DB, p.DatabaseOptions...).C(p.C, p.CollectionOptions...).Find(filter).Context(p.Ctx)}
 }
 
-func (p *Model[T, E]) FindByID(id interface{}) *FindResult[T, E] {
-	return &FindResult[T, E]{Find: p.Handler.DB(p.DB, p.DatabaseOptions...).C(p.C, p.CollectionOptions...).Find(bson.M{"_id": id}).Context(p.Ctx)}
-}
-
 type FindResult[T ~[]*E, E any] struct {
 	Find *Find
 }
@@ -378,16 +374,60 @@ func (p *FindResult[T, E]) Context(ctx context.Context) *FindResult[T, E] {
 	return p
 }
 
-func (p *FindResult[T, E]) One() (*E, error) {
-	var res E
-	var err = p.Find.One(&res)
-	return &res, err
-}
+//func (p *FindResult[T, E]) One() (*E, error) {
+//	var res E
+//	var err = p.Find.One(&res)
+//	return &res, err
+//}
 
 func (p *FindResult[T, E]) All() (T, error) {
 	var res T
 	var err = p.Find.All(&res)
 	return res, err
+}
+
+// FindByID findOneResult is the result of a FindOne operation.
+func (p *Model[T, E]) FindByID(id interface{}) *FindOneResult[T, E] {
+	return &FindOneResult[T, E]{FindOne: p.Handler.DB(p.DB, p.DatabaseOptions...).C(p.C, p.CollectionOptions...).FindOne(bson.M{"_id": id}).Context(p.Ctx)}
+}
+
+func (p *Model[T, E]) FindOne(filter interface{}) *FindOneResult[T, E] {
+	return &FindOneResult[T, E]{FindOne: p.Handler.DB(p.DB, p.DatabaseOptions...).C(p.C, p.CollectionOptions...).FindOne(filter).Context(p.Ctx)}
+}
+
+type FindOneResult[T ~[]*E, E any] struct {
+	FindOne *FindOne
+}
+
+func (p *FindOneResult[T, E]) Sort(sort interface{}) *FindOneResult[T, E] {
+	p.FindOne.Sort(sort)
+	return p
+}
+
+func (p *FindOneResult[T, E]) Skip(skip int64) *FindOneResult[T, E] {
+	p.FindOne.Skip(skip)
+	return p
+}
+
+func (p *FindOneResult[T, E]) Projection(projection interface{}) *FindOneResult[T, E] {
+	p.FindOne.Projection(projection)
+	return p
+}
+
+func (p *FindOneResult[T, E]) Hit(res interface{}) *FindOneResult[T, E] {
+	p.FindOne.Hit(res)
+	return p
+}
+
+func (p *FindOneResult[T, E]) Context(ctx context.Context) *FindOneResult[T, E] {
+	p.FindOne.Context(ctx)
+	return p
+}
+
+func (p *FindOneResult[T, E]) One() (*E, error) {
+	var res E
+	var err = p.FindOne.One(&res)
+	return &res, err
 }
 
 // AggregateResult is the result from an aggregate operation.
@@ -400,9 +440,9 @@ type AggregateResult struct {
 	*Aggregate
 }
 
-func (p *AggregateResult) One(res interface{}) error {
-	return p.Aggregate.One(res)
-}
+//func (p *AggregateResult) One(res interface{}) error {
+//	return p.Aggregate.One(res)
+//}
 
 func (p *AggregateResult) All(res interface{}) error {
 	return p.Aggregate.All(res)

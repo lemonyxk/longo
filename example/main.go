@@ -12,11 +12,9 @@ package main
 
 import (
 	"context"
-	"errors"
+	"fmt"
 	"github.com/lemonyxk/longo"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
-	"sync"
 	"time"
 )
 
@@ -60,51 +58,63 @@ func main() {
 	//res, err := test2.Find(bson.M{"a":1}).All()
 	//log.Println(res.Len(), err)
 
-	var test = longo.NewModel[[]*Test2](context.Background(), mgo).DB("Test").C("test")
+	var test = longo.NewModel[[]*Test2](context.Background(), mgo).DB("test").C("test")
 
-	var wait sync.WaitGroup
+	res, err := test.Update(bson.M{"_id": 1}, bson.M{"$set": bson.M{"id": 1, "add": 1}}).Exec()
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("%+v\n", res)
 
-	wait.Add(2)
+	a, err := test.Find(bson.M{"_id": 999}).All()
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("%+v\n", a)
 
-	go func() {
-		var err = mgo.TransactionWithLock(func(handler *longo.Mgo, sessionContext mongo.SessionContext) error {
-
-			_, err := test.Find(bson.M{}).Context(sessionContext).All()
-			if err != nil {
-				return errors.New("repeatable read 1: " + err.Error())
-			}
-
-			time.Sleep(time.Millisecond * 500)
-
-			_, err = test.Insert(&Test2{"id": 1, "add": 1}).Context(sessionContext).Exec()
-			if err != nil {
-				return errors.New("repeatable write 2: " + err.Error())
-			}
-
-			return nil
-		})
-
-		if err != nil {
-			panic(err)
-		}
-
-		wait.Done()
-	}()
-
-	go func() {
-		time.Sleep(time.Millisecond * 200)
-		var err = mgo.Transaction(func(handler *longo.Mgo, sessionContext mongo.SessionContext) error {
-			_, err := test.Insert(&Test2{"id": 2, "add": 2}).Context(sessionContext).Exec()
-			return err
-		})
-		if err != nil {
-			panic(err)
-		}
-
-		wait.Done()
-	}()
-
-	wait.Wait()
+	//var wait sync.WaitGroup
+	//
+	//wait.Add(2)
+	//
+	//go func() {
+	//	var err = mgo.TransactionWithLock(func(handler *longo.Mgo, sessionContext mongo.SessionContext) error {
+	//
+	//		_, err := test.Find(bson.M{}).Context(sessionContext).All()
+	//		if err != nil {
+	//			return errors.New("repeatable read 1: " + err.Error())
+	//		}
+	//
+	//		time.Sleep(time.Millisecond * 500)
+	//
+	//		_, err = test.Insert(&Test2{"id": 1, "add": 1}).Context(sessionContext).Exec()
+	//		if err != nil {
+	//			return errors.New("repeatable write 2: " + err.Error())
+	//		}
+	//
+	//		return nil
+	//	})
+	//
+	//	if err != nil {
+	//		panic(err)
+	//	}
+	//
+	//	wait.Done()
+	//}()
+	//
+	//go func() {
+	//	time.Sleep(time.Millisecond * 200)
+	//	var err = mgo.Transaction(func(handler *longo.Mgo, sessionContext mongo.SessionContext) error {
+	//		_, err := test.Insert(&Test2{"id": 2, "add": 2}).Context(sessionContext).Exec()
+	//		return err
+	//	})
+	//	if err != nil {
+	//		panic(err)
+	//	}
+	//
+	//	wait.Done()
+	//}()
+	//
+	//wait.Wait()
 
 	//
 	//a, err := test2.FindOneAndUpdate(bson.M{"_id": 96, "id": 3}, bson.M{"$set": Test2{

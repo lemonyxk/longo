@@ -19,5 +19,6 @@ type SingleResult struct {
 }
 
 func (sg *SingleResult) One(result interface{}) error {
-	return sg.singleResult.Decode(result)
+	var err = sg.singleResult.Decode(result)
+	return err
 }

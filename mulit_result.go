@@ -12,8 +12,7 @@ package longo
 
 import (
 	"context"
-	"io"
-
+	"fmt"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -30,17 +29,35 @@ func (ag *MultiResult) All(sessionContext context.Context, result interface{}) e
 	// if refResult.Kind() != reflect.Ptr || refResult.Elem().Kind() != reflect.Slice {
 	// 	return errors.New("result argument must be a slice address")
 	// }
+
+	if ag.cursor == nil {
+		return fmt.Errorf("cursor is nil")
+	}
+
+	if ag.cursor.Err() != nil {
+		return ag.cursor.Err()
+	}
+
 	return ag.cursor.All(sessionContext, result)
 }
 
-func (ag *MultiResult) One(sessionContext context.Context, result interface{}) error {
-	if ag.err != nil {
-		return ag.err
-	}
-	ag.cursor.Next(sessionContext)
-	var err = ag.cursor.Decode(result)
-	if err == io.EOF {
-		err = nil
-	}
-	return err
-}
+//func (ag *MultiResult) One(sessionContext context.Context, result interface{}) error {
+//	if ag.err != nil {
+//		return ag.err
+//	}
+//
+//	if ag.cursor == nil {
+//		return fmt.Errorf("cursor is nil")
+//	}
+//
+//	if ag.cursor.Err() != nil {
+//		return ag.cursor.Err()
+//	}
+//
+//	ag.cursor.Next(sessionContext)
+//	var err = ag.cursor.Decode(result)
+//	if err == io.EOF {
+//		err = nil
+//	}
+//	return err
+//}
