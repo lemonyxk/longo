@@ -296,6 +296,8 @@ func Test_Transaction_Set(t *testing.T) {
 	_, err := test.Insert(&TestDB{ID: 1, Add: 1}).Exec()
 	assert.True(t, err == nil, err)
 
+	// in UseSession, the transaction will be failed cause the write conflict
+	// but in WithTransaction, the transaction will be success cause will retry
 	go func() {
 		var err = mgo.Transaction(func(handler *longo.Mgo, sessionContext mongo.SessionContext) error {
 
@@ -306,14 +308,14 @@ func Test_Transaction_Set(t *testing.T) {
 				return err
 			}
 
-			assert.True(t, c == nil, c)
+			assert.True(t, c != nil, c)
 
 			time.Sleep(time.Millisecond * 1000)
 
 			return nil
 		})
 
-		assert.True(t, err != nil, err)
+		assert.True(t, err == nil, err)
 		wait.Done()
 	}()
 
