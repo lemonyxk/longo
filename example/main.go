@@ -12,10 +12,12 @@ package main
 
 import (
 	"context"
+	"errors"
 	"github.com/lemonyxk/longo"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"log"
+	"sync"
 	"time"
 )
 
@@ -57,24 +59,25 @@ func main() {
 	}
 
 	var test = longo.NewModel[[]*Test2](context.Background(), mgo).DB("test").C("test")
+	var test1 = longo.NewModel[[]*Test2](context.Background(), mgo).DB("test").C("test1")
 
-	_ = test
-
-	// test1
-	var url1 = "mongodb://root:1354243@127.0.0.1:27017,127.0.0.1:27018,127.0.0.1:27019"
-	mgo1, err := longo.NewClient().Connect(&longo.Config{Url: url1, WriteConcern: &longo.WriteConcern{W: -1, J: true, WTimeout: 10 * time.Second}})
-	if err != nil {
-		panic(err)
-	}
-
-	err = mgo1.RawClient().Ping(nil, longo.ReadPreference.Primary)
-	if err != nil {
-		panic(err)
-	}
-
-	var test1 = longo.NewModel[[]*Test2](context.Background(), mgo1).DB("test").C("test")
-
-	_ = test1
+	//_ = test
+	//
+	//// test1
+	//var url1 = "mongodb://root:1354243@127.0.0.1:27017,127.0.0.1:27018,127.0.0.1:27019"
+	//mgo1, err := longo.NewClient().Connect(&longo.Config{Url: url1, WriteConcern: &longo.WriteConcern{W: -1, J: true, WTimeout: 10 * time.Second}})
+	//if err != nil {
+	//	panic(err)
+	//}
+	//
+	//err = mgo1.RawClient().Ping(nil, longo.ReadPreference.Primary)
+	//if err != nil {
+	//	panic(err)
+	//}
+	//
+	//var test1 = longo.NewModel[[]*Test2](context.Background(), mgo1).DB("test").C("test1")
+	//
+	//_ = test1
 
 	//res, err := test.Update(bson.M{"_id": 1}, bson.M{"$set": bson.M{"id": 1, "add": 1}}).Exec()
 	//if err != nil {
@@ -88,75 +91,73 @@ func main() {
 	//}
 	//fmt.Printf("%+v\n", a)
 
-	models := []mongo.WriteModel{
-		mongo.NewUpdateOneModel().SetFilter(
-			bson.M{
-				"_id": `1111111`,
-			},
-		).SetUpdate(
-			bson.M{
-				"$set": bson.M{"id1": 1},
-			},
-		),
-		mongo.NewUpdateOneModel().SetFilter(
-			bson.M{
-				"_id": `2222222`,
-			},
-		).SetUpdate(
-			bson.M{
-				"$set": bson.M{"id1": 2},
-			},
-		),
-	}
+	//models := []mongo.WriteModel{
+	//	mongo.NewUpdateOneModel().SetFilter(
+	//		bson.M{
+	//			"_id": `1111111`,
+	//		},
+	//	).SetUpdate(
+	//		bson.M{
+	//			"$set": bson.M{"id1": 1},
+	//		},
+	//	),
+	//	mongo.NewUpdateOneModel().SetFilter(
+	//		bson.M{
+	//			"_id": `2222222`,
+	//		},
+	//	).SetUpdate(
+	//		bson.M{
+	//			"$set": bson.M{"id1": 2},
+	//		},
+	//	),
+	//}
+	//
+	//res, err := test1.BulkWrite(models).Exec()
+	//if err != nil {
+	//	panic(err)
+	//}
+	//
+	//log.Printf("%+v\n", res)
 
-	res, err := test1.BulkWrite(models).Exec()
-	if err != nil {
-		panic(err)
-	}
+	var wait sync.WaitGroup
 
-	log.Printf("%+v\n", res)
+	wait.Add(1500)
 
-	//var wait sync.WaitGroup
-	//
-	//wait.Add(3000)
-	//
-	//go func() {
-	//	for i := 0; i < 1500; i++ {
-	//		go func() {
-	//			var err = mgo.RawClient().UseSession(context.Background(), func(sessionContext mongo.SessionContext) error {
-	//				_, err := test.FindOneAndUpdate(bson.M{"_id": 1, "add": bson.M{"$gt": -0}}, bson.M{"$inc": bson.M{"add": -1}}).Context(sessionContext).ReturnDocument().Exec()
-	//				if err != nil {
-	//					return err
-	//				}
-	//				return nil
-	//			})
-	//			if err != nil {
-	//				log.Println(err)
-	//			}
-	//			wait.Done()
-	//		}()
-	//	}
-	//}()
-	//
-	//go func() {
-	//	for i := 0; i < 1500; i++ {
-	//		go func() {
-	//			var err = mgo1.RawClient().UseSession(context.Background(), func(sessionContext mongo.SessionContext) error {
-	//				_, err := test1.FindOneAndUpdate(bson.M{"_id": 1, "sub": bson.M{"$gt": -0}}, bson.M{"$inc": bson.M{"sub": -1}}).Context(sessionContext).ReturnDocument().Exec()
-	//				if err != nil {
-	//					return err
-	//				}
-	//				return nil
-	//			})
-	//			if err != nil {
-	//				log.Println(err)
-	//			}
-	//			wait.Done()
-	//		}()
-	//	}
-	//}()
-	//
-	//wait.Wait()
+	var start = time.Now()
+
+	go func() {
+		for i := 0; i < 1500; i++ {
+			var err = mgo.Transaction(func(handler *longo.Mgo, sessionContext mongo.SessionContext) error {
+				res1, err := test.Set(bson.M{"_id": 1}, bson.M{"add": i}).Context(sessionContext).Exec()
+				if err != nil {
+					return err
+				}
+
+				if res1.ModifiedCount == 0 {
+					return errors.New("modified count is 0")
+				}
+
+				res, err := test1.Insert(&Test2{"id": i, "add": i}).Context(sessionContext).Exec()
+				if err != nil {
+					return err
+				}
+
+				if res.InsertedIDs == nil {
+					return errors.New("inserted ids is nil")
+				}
+
+				return nil
+			})
+			if err != nil {
+				log.Printf("1: %+v\n", err)
+			}
+			wait.Done()
+		}
+	}()
+
+	wait.Wait()
+
+	log.Printf("time: %+v\n", time.Since(start))
 
 	//var wait sync.WaitGroup
 	//

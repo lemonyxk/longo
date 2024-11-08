@@ -64,5 +64,9 @@ func (f *FindOne) One(result interface{}) error {
 		return f.err
 	}
 	var res = &SingleResult{singleResult: f.collection.FindOne(f.sessionContext, f.filter, f.option)}
-	return res.One(result)
+	var err = res.One(result)
+	if err == mongo.ErrNoDocuments {
+		return nil
+	}
+	return err
 }
