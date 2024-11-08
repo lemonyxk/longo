@@ -12,6 +12,7 @@ package longo
 
 import (
 	"context"
+	"net/url"
 	"strings"
 	"time"
 
@@ -93,7 +94,22 @@ func (c *Client) Connect(config *Config, opts ...*options.ClientOptions) (*Mgo, 
 
 	c.init(config)
 
-	var option = options.Client().ApplyURI(c.config.Url)
+	if !strings.HasSuffix(c.config.Url, "/") {
+		c.config.Url = c.config.Url + "/"
+	}
+
+	var u, err = url.Parse(c.config.Url)
+	if err != nil {
+		return nil, err
+	}
+
+	if c.config.TLS {
+		var q = u.Query()
+		q.Set("tls", "true")
+		u.RawQuery = q.Encode()
+	}
+
+	var option = options.Client().ApplyURI(u.String())
 
 	if config.Register != nil {
 		option.SetRegistry(config.Register)
