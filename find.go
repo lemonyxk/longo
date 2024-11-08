@@ -12,6 +12,7 @@ package longo
 
 import (
 	"context"
+	"go.mongodb.org/mongo-driver/bson"
 	"reflect"
 
 	"go.mongodb.org/mongo-driver/mongo"
@@ -51,6 +52,24 @@ func (f *Find) Skip(skip int64) *Find {
 }
 
 func (f *Find) Projection(projection interface{}) *Find {
+	f.option.Projection = projection
+	return f
+}
+
+func (f *Find) Include(fields ...string) *Find {
+	var projection = bson.M{}
+	for i := 0; i < len(fields); i++ {
+		projection[fields[i]] = 1
+	}
+	f.option.Projection = projection
+	return f
+}
+
+func (f *Find) Exclude(fields ...string) *Find {
+	var projection = bson.M{}
+	for i := 0; i < len(fields); i++ {
+		projection[fields[i]] = 0
+	}
 	f.option.Projection = projection
 	return f
 }

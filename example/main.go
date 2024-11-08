@@ -11,13 +11,9 @@
 package main
 
 import (
-	"context"
-	"errors"
 	"github.com/lemonyxk/longo"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
 	"log"
-	"sync"
 	"time"
 )
 
@@ -58,8 +54,22 @@ func main() {
 		panic(err)
 	}
 
-	var test = longo.NewModel[[]*Test2](context.Background(), mgo).DB("test").C("test")
-	var test1 = longo.NewModel[[]*Test2](context.Background(), mgo).DB("test").C("test1")
+	var start = time.Now()
+
+	var res []bson.M
+	err = mgo.DB("Social").C("ReportRecord").Find(bson.M{}).Sort(bson.M{"tid": -1}).Limit(10).All(&res)
+	if err != nil {
+		panic(err)
+	}
+
+	log.Printf("time: %+v\n", time.Since(start))
+
+	for i := 0; i < len(res); i++ {
+		log.Printf("%+v\n", res[i])
+	}
+
+	//var test = longo.NewModel[[]*Test2](context.Background(), mgo).DB("test").C("test")
+	//var test1 = longo.NewModel[[]*Test2](context.Background(), mgo).DB("test").C("test1")
 
 	//_ = test
 	//
@@ -119,45 +129,45 @@ func main() {
 	//
 	//log.Printf("%+v\n", res)
 
-	var wait sync.WaitGroup
-
-	wait.Add(1500)
-
-	var start = time.Now()
-
-	go func() {
-		for i := 0; i < 1500; i++ {
-			var err = mgo.Transaction(func(handler *longo.Mgo, sessionContext mongo.SessionContext) error {
-				res1, err := test.Set(bson.M{"_id": 1}, bson.M{"add": i}).Context(sessionContext).Exec()
-				if err != nil {
-					return err
-				}
-
-				if res1.ModifiedCount == 0 {
-					return errors.New("modified count is 0")
-				}
-
-				res, err := test1.Insert(&Test2{"id": i, "add": i}).Context(sessionContext).Exec()
-				if err != nil {
-					return err
-				}
-
-				if res.InsertedIDs == nil {
-					return errors.New("inserted ids is nil")
-				}
-
-				return nil
-			})
-			if err != nil {
-				log.Printf("1: %+v\n", err)
-			}
-			wait.Done()
-		}
-	}()
-
-	wait.Wait()
-
-	log.Printf("time: %+v\n", time.Since(start))
+	//var wait sync.WaitGroup
+	//
+	//wait.Add(1500)
+	//
+	//var start = time.Now()
+	//
+	//go func() {
+	//	for i := 0; i < 1500; i++ {
+	//		var err = mgo.Transaction(func(handler *longo.Mgo, sessionContext mongo.SessionContext) error {
+	//			res1, err := test.Set(bson.M{"_id": 1}, bson.M{"add": i}).Context(sessionContext).Exec()
+	//			if err != nil {
+	//				return err
+	//			}
+	//
+	//			if res1.ModifiedCount == 0 {
+	//				return errors.New("modified count is 0")
+	//			}
+	//
+	//			res, err := test1.Insert(&Test2{"id": i, "add": i}).Context(sessionContext).Exec()
+	//			if err != nil {
+	//				return err
+	//			}
+	//
+	//			if res.InsertedIDs == nil {
+	//				return errors.New("inserted ids is nil")
+	//			}
+	//
+	//			return nil
+	//		})
+	//		if err != nil {
+	//			log.Printf("1: %+v\n", err)
+	//		}
+	//		wait.Done()
+	//	}
+	//}()
+	//
+	//wait.Wait()
+	//
+	//log.Printf("time: %+v\n", time.Since(start))
 
 	//var wait sync.WaitGroup
 	//
