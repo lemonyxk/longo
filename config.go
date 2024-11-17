@@ -24,6 +24,7 @@ type Config struct {
 	Hosts          []string
 	Url            string
 	TLS            bool
+	Direct         bool
 	ReadPreference *readpref.ReadPref
 	ReadConcern    *readconcern.ReadConcern
 	WriteConcern   *WriteConcern
