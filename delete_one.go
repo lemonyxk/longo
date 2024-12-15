@@ -13,6 +13,8 @@ package longo
 import (
 	"context"
 	"fmt"
+	"github.com/lemonyxk/longo/call"
+	"time"
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -31,30 +33,64 @@ func NewDeleteOne(ctx context.Context, collection *mongo.Collection, filter inte
 	return &DeleteOne{collection: collection, deleteOneOption: &options.DeleteOptions{}, filter: filter, sessionContext: ctx}
 }
 
-func (i *DeleteOne) Option(opt *options.DeleteOptions) *DeleteOne {
-	i.deleteOneOption = opt
-	return i
+func (f *DeleteOne) Option(opt *options.DeleteOptions) *DeleteOne {
+	f.deleteOneOption = opt
+	return f
 }
 
-func (i *DeleteOne) Context(ctx context.Context) *DeleteOne {
-	i.sessionContext = ctx
-	return i
+func (f *DeleteOne) Context(ctx context.Context) *DeleteOne {
+	f.sessionContext = ctx
+	return f
 }
 
-func (i *DeleteOne) MustDeleted() *DeleteOne {
-	i.mustDeleted = true
-	return i
+func (f *DeleteOne) MustDeleted() *DeleteOne {
+	f.mustDeleted = true
+	return f
 }
 
-func (i *DeleteOne) Exec() (*mongo.DeleteResult, error) {
-	var res, err = i.collection.DeleteOne(i.sessionContext, i.filter, i.deleteOneOption)
+func (f *DeleteOne) Exec() (*mongo.DeleteResult, error) {
+
+	var t = time.Now()
+
+	var res *mongo.DeleteResult
+	var err error
+
+	defer func() {
+		if res == nil {
+			res = &mongo.DeleteResult{}
+		}
+		call.Default.Call(call.Record{
+			Meta: call.Meta{
+				Database:   f.collection.Database().Name(),
+				Collection: f.collection.Name(),
+				Type:       call.DeleteOne,
+			},
+			Query: call.Query{
+				Filter:  f.filter,
+				Updater: nil,
+			},
+			Result: call.Result{
+				Insert: 0,
+				Update: 0,
+				Delete: res.DeletedCount,
+				Match:  0,
+				Upsert: 0,
+			},
+			Consuming: time.Since(t).Microseconds(),
+			Error:     err,
+		})
+	}()
+
+	res, err = f.collection.DeleteOne(f.sessionContext, f.filter, f.deleteOneOption)
 	if err != nil {
 		return nil, err
 	}
-	if i.mustDeleted {
+
+	if f.mustDeleted {
 		if res.DeletedCount == 0 {
 			return nil, fmt.Errorf("no document deleted")
 		}
 	}
+
 	return res, nil
 }

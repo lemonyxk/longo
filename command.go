@@ -12,7 +12,6 @@ package longo
 
 import (
 	"context"
-
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -32,5 +31,5 @@ func (c *Command) All(result interface{}) error {
 func (c *Command) One(result interface{}) error {
 	cursor := c.db.RunCommand(context.Background(), c.command, c.option...)
 	var res = &SingleResult{singleResult: cursor}
-	return res.One(result)
+	return res.Get(result)
 }

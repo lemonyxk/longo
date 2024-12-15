@@ -12,6 +12,8 @@ package longo
 
 import (
 	"context"
+	"github.com/lemonyxk/longo/call"
+	"time"
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -22,7 +24,6 @@ type FindOne struct {
 	option         *options.FindOneOptions
 	filter         interface{}
 	sessionContext context.Context
-	err            error
 }
 
 func NewFindOne(ctx context.Context, collection *mongo.Collection, filter interface{}) *FindOne {
@@ -59,14 +60,44 @@ func (f *FindOne) Option(opt *options.FindOneOptions) *FindOne {
 	return f
 }
 
-func (f *FindOne) One(result interface{}) error {
-	if f.err != nil {
-		return f.err
+func (f *FindOne) Get(result interface{}) error {
+
+	var t = time.Now()
+
+	var res int64 = 0
+	var err error
+
+	defer func() {
+		call.Default.Call(call.Record{
+			Meta: call.Meta{
+				Database:   f.collection.Database().Name(),
+				Collection: f.collection.Name(),
+				Type:       call.FindOne,
+			},
+			Query: call.Query{
+				Filter:  f.filter,
+				Updater: nil,
+			},
+			Result: call.Result{
+				Insert: 0,
+				Update: 0,
+				Delete: 0,
+				Match:  res,
+				Upsert: 0,
+			},
+			Consuming: time.Since(t).Microseconds(),
+			Error:     err,
+		})
+	}()
+
+	var cursor = &SingleResult{singleResult: f.collection.FindOne(f.sessionContext, f.filter, f.option)}
+	err = cursor.Get(result)
+	if err == mongo.ErrNoDocuments { // only for FindOne, if modify action, it will return ErrNoDocuments
+		err = nil
 	}
-	var res = &SingleResult{singleResult: f.collection.FindOne(f.sessionContext, f.filter, f.option)}
-	var err = res.One(result)
-	if err == mongo.ErrNoDocuments {
-		return nil
+	if err != nil {
+		return err
 	}
-	return err
+	res = 1
+	return nil
 }

@@ -12,8 +12,10 @@ package longo
 
 import (
 	"context"
+	"github.com/lemonyxk/longo/call"
 	"go.mongodb.org/mongo-driver/bson"
 	"reflect"
+	"time"
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -24,7 +26,6 @@ type Find struct {
 	option         *options.FindOptions
 	filter         interface{}
 	sessionContext context.Context
-	err            error
 }
 
 func NewFind(ctx context.Context, collection *mongo.Collection, filter interface{}) *Find {
@@ -85,20 +86,83 @@ func (f *Find) Option(opt *options.FindOptions) *Find {
 }
 
 func (f *Find) Count(opts ...*options.CountOptions) (int64, error) {
+
+	var t = time.Now()
+
+	var res int64 = 0
+	var err error
+
+	defer func() {
+		call.Default.Call(call.Record{
+			Meta: call.Meta{
+				Database:   f.collection.Database().Name(),
+				Collection: f.collection.Name(),
+				Type:       call.Count,
+			},
+			Query: call.Query{
+				Filter:  nil,
+				Updater: nil,
+			},
+			Result: call.Result{
+				Insert: 0,
+				Update: 0,
+				Delete: 0,
+				Match:  res,
+				Upsert: 0,
+			},
+			Consuming: time.Since(t).Microseconds(),
+			Error:     err,
+		})
+	}()
+
 	var ref = reflect.ValueOf(f.filter)
 	if ref.IsNil() || (ref.Kind() == reflect.Map && ref.Len() == 0) {
-		return f.collection.EstimatedDocumentCount(f.sessionContext)
+		res, err = f.collection.EstimatedDocumentCount(f.sessionContext)
+		return res, err
 	}
-	return f.collection.CountDocuments(f.sessionContext, f.filter, opts...)
+
+	res, err = f.collection.CountDocuments(f.sessionContext, f.filter, opts...)
+	return res, err
 }
 
 func (f *Find) All(result interface{}) error {
-	if f.err != nil {
-		return f.err
-	}
+
+	var t = time.Now()
+
+	var res int64 = 0
+	var err error
+
+	defer func() {
+		call.Default.Call(call.Record{
+			Meta: call.Meta{
+				Database:   f.collection.Database().Name(),
+				Collection: f.collection.Name(),
+				Type:       call.Find,
+			},
+			Query: call.Query{
+				Filter:  f.filter,
+				Updater: nil,
+			},
+			Result: call.Result{
+				Insert: 0,
+				Update: 0,
+				Delete: 0,
+				Match:  res,
+				Upsert: 0,
+			},
+			Consuming: time.Since(t).Microseconds(),
+			Error:     err,
+		})
+	}()
+
 	cursor, err := f.collection.Find(f.sessionContext, f.filter, f.option)
-	var res = &MultiResult{cursor: cursor, err: err}
-	return res.All(f.sessionContext, result)
+	var all = &MultiResult{cursor: cursor, err: err}
+	err = all.All(f.sessionContext, result)
+	if err != nil {
+		return err
+	}
+	res = int64(reflect.ValueOf(result).Elem().Len())
+	return nil
 }
 
 //func (f *Find) One(result interface{}) error {

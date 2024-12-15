@@ -13,6 +13,8 @@ package longo
 import (
 	"context"
 	"fmt"
+	"github.com/lemonyxk/longo/call"
+	"time"
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -34,47 +36,78 @@ func NewReplaceOne(ctx context.Context, collection *mongo.Collection, filter int
 	return &ReplaceOne{collection: collection, replaceOneOption: &options.ReplaceOptions{}, filter: filter, update: update, sessionContext: ctx}
 }
 
-func (i *ReplaceOne) Option(opt *options.ReplaceOptions) *ReplaceOne {
-	i.replaceOneOption = opt
-	return i
+func (f *ReplaceOne) Option(opt *options.ReplaceOptions) *ReplaceOne {
+	f.replaceOneOption = opt
+	return f
 }
 
-func (i *ReplaceOne) Context(ctx context.Context) *ReplaceOne {
-	i.sessionContext = ctx
-	return i
+func (f *ReplaceOne) Context(ctx context.Context) *ReplaceOne {
+	f.sessionContext = ctx
+	return f
 }
 
-func (i *ReplaceOne) MustModified() *ReplaceOne {
-	i.mustModified = true
-	return i
+func (f *ReplaceOne) MustModified() *ReplaceOne {
+	f.mustModified = true
+	return f
 }
 
-func (i *ReplaceOne) MustMatched() *ReplaceOne {
-	i.mustMatched = true
-	return i
+func (f *ReplaceOne) MustMatched() *ReplaceOne {
+	f.mustMatched = true
+	return f
 }
 
-func (i *ReplaceOne) MustUpsert() *ReplaceOne {
-	i.mustUpsert = true
-	return i
+func (f *ReplaceOne) MustUpsert() *ReplaceOne {
+	f.mustUpsert = true
+	return f
 }
 
-func (i *ReplaceOne) Exec() (*mongo.UpdateResult, error) {
-	var res, err = i.collection.ReplaceOne(i.sessionContext, i.filter, i.update, i.replaceOneOption)
+func (f *ReplaceOne) Exec() (*mongo.UpdateResult, error) {
+
+	var t = time.Now()
+	var res *mongo.UpdateResult
+	var err error
+
+	defer func() {
+		if res == nil {
+			res = &mongo.UpdateResult{}
+		}
+		call.Default.Call(call.Record{
+			Meta: call.Meta{
+				Database:   f.collection.Database().Name(),
+				Collection: f.collection.Name(),
+				Type:       call.ReplaceOne,
+			},
+			Query: call.Query{
+				Filter:  f.filter,
+				Updater: f.update,
+			},
+			Result: call.Result{
+				Insert: 0,
+				Update: res.ModifiedCount,
+				Delete: 0,
+				Match:  res.MatchedCount,
+				Upsert: res.UpsertedCount,
+			},
+			Consuming: time.Since(t).Microseconds(),
+			Error:     err,
+		})
+	}()
+
+	res, err = f.collection.ReplaceOne(f.sessionContext, f.filter, f.update, f.replaceOneOption)
 	if err != nil {
 		return nil, err
 	}
-	if i.mustModified {
+	if f.mustModified {
 		if res.ModifiedCount == 0 {
 			return nil, fmt.Errorf("update replace one error: %s", "no modified")
 		}
 	}
-	if i.mustMatched {
+	if f.mustMatched {
 		if res.MatchedCount == 0 {
 			return nil, fmt.Errorf("update replace one error: %s", "no matched")
 		}
 	}
-	if i.mustUpsert {
+	if f.mustUpsert {
 		if res.UpsertedCount == 0 {
 			return nil, fmt.Errorf("update replace one error: %s", "no upsert")
 		}

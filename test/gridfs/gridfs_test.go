@@ -51,6 +51,11 @@ func Test_Connect(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
+
+	err = mgo.RawClient().Database("Test_1").Drop(context.Background())
+	if err != nil {
+		panic(err)
+	}
 }
 
 var NewObjectID = longo.NewObjectID()

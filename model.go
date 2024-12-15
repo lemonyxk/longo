@@ -67,12 +67,6 @@ type Model[T ~[]*E, E any] struct {
 	CollectionOptions []*options.CollectionOptions
 }
 
-// func (p *Model[T,E]) SetHandler(ctx context.Context, handler *Mgo) *Model[T,E] {
-// 	p.Handler = handler
-// 	p.Ctx = ctx
-// 	return p
-// }
-
 func (p *Model[T, E]) CreateIndex() error {
 	var t E
 	var srcType = reflect.TypeOf(t)
@@ -138,19 +132,6 @@ func (p *Model[T, E]) Database() *Database {
 
 func (p *Model[T, E]) Collection() *Collection {
 	return p.Handler.DB(p.DB, p.DatabaseOptions...).C(p.C, p.CollectionOptions...).Context(p.Ctx)
-}
-
-// func (p *Model[T,E]) Context(ctx context.Context) *Model[T,E] {
-// 	p.Ctx = ctx
-// 	return p
-// }
-
-func (p *Model[T, E]) Count(filter interface{}, opts ...*options.CountOptions) (int64, error) {
-	var ref = reflect.ValueOf(filter)
-	if ref.IsNil() || (ref.Kind() == reflect.Map && ref.Len() == 0) {
-		return p.Handler.DB(p.DB, p.DatabaseOptions...).C(p.C, p.CollectionOptions...).EstimatedDocumentCount()
-	}
-	return p.Handler.DB(p.DB, p.DatabaseOptions...).C(p.C, p.CollectionOptions...).CountDocuments(filter, opts...)
 }
 
 func (p *Model[T, E]) Set(filter interface{}, update interface{}) *UpdateMany {
@@ -238,8 +219,7 @@ func (f *FindOneAndReplaceResult[T, E]) Option(opt *options.FindOneAndReplaceOpt
 
 func (f *FindOneAndReplaceResult[T, E]) Exec() (*E, error) {
 	var res E
-	var sig = &SingleResult{singleResult: f.collection.FindOneAndReplace(f.sessionContext, f.filter, f.replacement, f.option)}
-	var err = sig.One(&res)
+	var err = f.FindOneAndReplace.Exec(&res)
 	return &res, err
 }
 
@@ -280,8 +260,7 @@ func (f *FindOneAndDeleteResult[T, E]) Option(opt *options.FindOneAndDeleteOptio
 
 func (f *FindOneAndDeleteResult[T, E]) Exec() (*E, error) {
 	var res E
-	var sig = &SingleResult{singleResult: f.collection.FindOneAndDelete(f.sessionContext, f.filter, f.option)}
-	var err = sig.One(&res)
+	var err = f.FindOneAndDelete.Exec(&res)
 	return &res, err
 }
 
@@ -334,8 +313,7 @@ func (f *FindOneAndUpdateResult[T, E]) Option(opt *options.FindOneAndUpdateOptio
 
 func (f *FindOneAndUpdateResult[T, E]) Exec() (*E, error) {
 	var res E
-	var sig = &SingleResult{singleResult: f.collection.FindOneAndUpdate(f.sessionContext, f.filter, f.update, f.option)}
-	var err = sig.One(&res)
+	var err = f.FindOneAndUpdate.Exec(&res)
 	return &res, err
 }
 
@@ -379,11 +357,9 @@ func (p *FindResult[T, E]) Context(ctx context.Context) *FindResult[T, E] {
 	return p
 }
 
-//func (p *FindResult[T, E]) One() (*E, error) {
-//	var res E
-//	var err = p.Find.One(&res)
-//	return &res, err
-//}
+func (p *FindResult[T, E]) Count(opts ...*options.CountOptions) (int64, error) {
+	return p.Find.Count(opts...)
+}
 
 func (p *FindResult[T, E]) All() (T, error) {
 	var res T
@@ -429,9 +405,9 @@ func (p *FindOneResult[T, E]) Context(ctx context.Context) *FindOneResult[T, E] 
 	return p
 }
 
-func (p *FindOneResult[T, E]) One() (*E, error) {
+func (p *FindOneResult[T, E]) Get() (*E, error) {
 	var res E
-	var err = p.FindOne.One(&res)
+	var err = p.FindOne.Get(&res)
 	return &res, err
 }
 
@@ -445,15 +421,11 @@ type AggregateResult struct {
 	*Aggregate
 }
 
-//func (p *AggregateResult) One(res interface{}) error {
-//	return p.Aggregate.One(res)
-//}
-
-func (p *AggregateResult) All(res interface{}) error {
-	return p.Aggregate.All(res)
-}
-
 func (p *AggregateResult) Context(ctx context.Context) *AggregateResult {
 	p.Aggregate.Context(ctx)
 	return p
+}
+
+func (p *AggregateResult) All(res interface{}) error {
+	return p.Aggregate.All(res)
 }

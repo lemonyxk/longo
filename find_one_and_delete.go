@@ -12,6 +12,8 @@ package longo
 
 import (
 	"context"
+	"github.com/lemonyxk/longo/call"
+	"time"
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -54,6 +56,40 @@ func (f *FindOneAndDelete) Option(opt *options.FindOneAndDeleteOptions) *FindOne
 }
 
 func (f *FindOneAndDelete) Exec(result interface{}) error {
-	var res = &SingleResult{singleResult: f.collection.FindOneAndDelete(f.sessionContext, f.filter, f.option)}
-	return res.One(result)
+
+	var t = time.Now()
+
+	var res int64 = 0
+	var err error
+
+	defer func() {
+		call.Default.Call(call.Record{
+			Meta: call.Meta{
+				Database:   f.collection.Database().Name(),
+				Collection: f.collection.Name(),
+				Type:       call.FindOneAndDelete,
+			},
+			Query: call.Query{
+				Filter:  f.filter,
+				Updater: nil,
+			},
+			Result: call.Result{
+				Insert: 0,
+				Update: 0,
+				Delete: res,
+				Match:  res,
+				Upsert: 0,
+			},
+			Consuming: time.Since(t).Microseconds(),
+			Error:     err,
+		})
+	}()
+
+	var cursor = &SingleResult{singleResult: f.collection.FindOneAndDelete(f.sessionContext, f.filter, f.option)}
+	err = cursor.Get(result)
+	if err != nil {
+		return err
+	}
+	res = 1
+	return err
 }

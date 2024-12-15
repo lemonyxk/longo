@@ -84,7 +84,7 @@ func (b *Bucket) FindOne(filter interface{}) *FindOne {
 	if bucket == nil {
 		panic(err)
 	}
-	return &FindOne{bucket.GetFilesCollection(), &options.FindOneOptions{}, filter, context.Background(), err}
+	return &FindOne{bucket.GetFilesCollection(), &options.FindOneOptions{}, filter, context.Background()}
 }
 
 func (b *Bucket) FindByID(id primitive.ObjectID) *FindOne {
@@ -92,7 +92,7 @@ func (b *Bucket) FindByID(id primitive.ObjectID) *FindOne {
 	if bucket == nil {
 		panic(err)
 	}
-	return &FindOne{bucket.GetFilesCollection(), &options.FindOneOptions{}, bson.M{"_id": id}, context.Background(), err}
+	return &FindOne{bucket.GetFilesCollection(), &options.FindOneOptions{}, bson.M{"_id": id}, context.Background()}
 }
 
 func (b *Bucket) Find(filter interface{}) *Find {
@@ -100,5 +100,5 @@ func (b *Bucket) Find(filter interface{}) *Find {
 	if bucket == nil {
 		panic(err)
 	}
-	return &Find{bucket.GetFilesCollection(), &options.FindOptions{}, filter, context.Background(), err}
+	return &Find{bucket.GetFilesCollection(), &options.FindOptions{}, filter, context.Background()}
 }

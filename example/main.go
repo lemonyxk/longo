@@ -11,7 +11,11 @@
 package main
 
 import (
+	"context"
+	"encoding/json"
+	"fmt"
 	"github.com/lemonyxk/longo"
+	"github.com/lemonyxk/longo/call"
 	"go.mongodb.org/mongo-driver/bson"
 	"log"
 	"time"
@@ -54,22 +58,34 @@ func main() {
 		panic(err)
 	}
 
+	call.Default.Database("*").Collection().Type().Watch(func(info call.Record) {
+		bts, err := json.Marshal(info)
+		if err != nil {
+			panic(err)
+		}
+
+		fmt.Println(string(bts))
+	})
+
 	var start = time.Now()
 
-	var res []bson.M
-	err = mgo.DB("Social").C("ReportRecord").Find(bson.M{}).Sort(bson.M{"tid": -1}).Limit(10).All(&res)
+	var res interface{}
+	err = mgo.DB("test").C("test").FindOneAndUpdate(bson.M{"_id": 1}, bson.M{"$set": bson.M{"name": "2"}}).Sort(bson.M{"tid": -1}).Exec(&res)
 	if err != nil {
 		panic(err)
 	}
 
 	log.Printf("time: %+v\n", time.Since(start))
+	log.Println(res)
 
-	for i := 0; i < len(res); i++ {
-		log.Printf("%+v\n", res[i])
-	}
+	//for i := 0; i < len(res); i++ {
+	//	log.Printf("%+v\n", res[i])
+	//}
 
-	//var test = longo.NewModel[[]*Test2](context.Background(), mgo).DB("test").C("test")
+	var test = longo.NewModel[[]*Test2](context.Background(), mgo).DB("test").C("test")
 	//var test1 = longo.NewModel[[]*Test2](context.Background(), mgo).DB("test").C("test1")
+
+	test.Find(bson.M{"_id": 1}).All()
 
 	//_ = test
 	//

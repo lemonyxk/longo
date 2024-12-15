@@ -13,6 +13,8 @@ package longo
 import (
 	"context"
 	"fmt"
+	"github.com/lemonyxk/longo/call"
+	"time"
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -34,47 +36,78 @@ func NewUpdateMany(ctx context.Context, collection *mongo.Collection, filter int
 	return &UpdateMany{collection: collection, updateManyOption: &options.UpdateOptions{}, filter: filter, update: update, sessionContext: ctx}
 }
 
-func (i *UpdateMany) Option(opt *options.UpdateOptions) *UpdateMany {
-	i.updateManyOption = opt
-	return i
+func (f *UpdateMany) Option(opt *options.UpdateOptions) *UpdateMany {
+	f.updateManyOption = opt
+	return f
 }
 
-func (i *UpdateMany) Context(ctx context.Context) *UpdateMany {
-	i.sessionContext = ctx
-	return i
+func (f *UpdateMany) Context(ctx context.Context) *UpdateMany {
+	f.sessionContext = ctx
+	return f
 }
 
-func (i *UpdateMany) MustModified() *UpdateMany {
-	i.mustModified = true
-	return i
+func (f *UpdateMany) MustModified() *UpdateMany {
+	f.mustModified = true
+	return f
 }
 
-func (i *UpdateMany) MustMatched() *UpdateMany {
-	i.mustMatched = true
-	return i
+func (f *UpdateMany) MustMatched() *UpdateMany {
+	f.mustMatched = true
+	return f
 }
 
-func (i *UpdateMany) MustUpsert() *UpdateMany {
-	i.mustUpsert = true
-	return i
+func (f *UpdateMany) MustUpsert() *UpdateMany {
+	f.mustUpsert = true
+	return f
 }
 
-func (i *UpdateMany) Exec() (*mongo.UpdateResult, error) {
-	var res, err = i.collection.UpdateMany(i.sessionContext, i.filter, i.update, i.updateManyOption)
+func (f *UpdateMany) Exec() (*mongo.UpdateResult, error) {
+
+	var t = time.Now()
+	var res *mongo.UpdateResult
+	var err error
+
+	defer func() {
+		if res == nil {
+			res = &mongo.UpdateResult{}
+		}
+		call.Default.Call(call.Record{
+			Meta: call.Meta{
+				Database:   f.collection.Database().Name(),
+				Collection: f.collection.Name(),
+				Type:       call.UpdateMany,
+			},
+			Query: call.Query{
+				Filter:  f.filter,
+				Updater: f.update,
+			},
+			Result: call.Result{
+				Insert: 0,
+				Update: res.ModifiedCount,
+				Delete: 0,
+				Match:  res.MatchedCount,
+				Upsert: res.UpsertedCount,
+			},
+			Consuming: time.Since(t).Microseconds(),
+			Error:     err,
+		})
+	}()
+
+	res, err = f.collection.UpdateMany(f.sessionContext, f.filter, f.update, f.updateManyOption)
 	if err != nil {
 		return nil, err
 	}
-	if i.mustModified {
+	if f.mustModified {
 		if res.ModifiedCount == 0 {
 			return nil, fmt.Errorf("update many error: %s", "no modified")
 		}
 	}
-	if i.mustMatched {
+	if f.mustMatched {
 		if res.MatchedCount == 0 {
 			return nil, fmt.Errorf("update many error: %s", "no matched")
 		}
 	}
-	if i.mustUpsert {
+	if f.mustUpsert {
 		if res.UpsertedCount == 0 {
 			return nil, fmt.Errorf("update many error: %s", "no upsert")
 		}

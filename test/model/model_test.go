@@ -50,6 +50,11 @@ func Test_Connect(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
+
+	err = mgo.RawClient().Database("Test_2").Drop(context.Background())
+	if err != nil {
+		panic(err)
+	}
 }
 
 func Test_Model_Insert(t *testing.T) {
@@ -72,11 +77,11 @@ func Test_Model_Find(t *testing.T) {
 	})
 	_, err := test.Insert(&TestDB{ID: 1, Add: 1}, &TestDB{ID: 2, Add: 2}).Exec()
 	assert.True(t, err == nil, err)
-	a, err := test.FindOne(bson.M{"id": 1}).One()
+	a, err := test.FindOne(bson.M{"id": 1}).Get()
 	assert.True(t, err == nil, err)
 	assert.True(t, a.Add == 1, a.Add)
 
-	a, err = test.FindOne(bson.M{"id": 2}).One()
+	a, err = test.FindOne(bson.M{"id": 2}).Get()
 	assert.True(t, err == nil, err)
 	assert.True(t, a.Add == 2, a.Add)
 }
@@ -102,7 +107,7 @@ func Test_Model_Update(t *testing.T) {
 	assert.True(t, err == nil, err)
 	_, err = test.Set(bson.M{"id": 1}, bson.M{"add": 3}).Exec()
 	assert.True(t, err == nil, err)
-	a, err := test.FindOne(bson.M{"id": 1}).One()
+	a, err := test.FindOne(bson.M{"id": 1}).Get()
 	assert.True(t, err == nil, err)
 	assert.True(t, a.Add == 3, a.Add)
 }
@@ -155,7 +160,7 @@ func Test_Model_Count(t *testing.T) {
 	})
 	_, err := test.Insert(&TestDB{ID: 1, Add: 1}, &TestDB{ID: 2, Add: 2}).Exec()
 	assert.True(t, err == nil, err)
-	a, err := test.Count(bson.M{})
+	a, err := test.Find(bson.M{}).Count()
 	assert.True(t, err == nil, err)
 	assert.True(t, a == 2, a)
 }
@@ -166,7 +171,7 @@ func Test_Model_CountBy(t *testing.T) {
 	})
 	_, err := test.Insert(&TestDB{ID: 1, Add: 1}, &TestDB{ID: 2, Add: 2}).Exec()
 	assert.True(t, err == nil, err)
-	a, err := test.Count(bson.M{"id": 1})
+	a, err := test.Find(bson.M{"id": 1}).Count()
 	assert.True(t, err == nil, err)
 	assert.True(t, a == 1, a)
 }
@@ -348,6 +353,8 @@ func Test_Model_BulkDelete(t *testing.T) {
 }
 
 func Test_Model_CreateIndex(t *testing.T) {
+	time.Sleep(time.Second * 3)
+
 	var test = longo.NewModel[[]*TestDB](context.Background(), mgo).DB("Test_2").C("Test_Model_CreateIndex", &options.CollectionOptions{
 		ReadPreference: longo.ReadPreference.Primary,
 	})
