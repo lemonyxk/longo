@@ -48,7 +48,10 @@ func main() {
 	//log.Println(res)
 
 	var url = "mongodb://root:1354243@127.0.0.1:27017,127.0.0.1:27018,127.0.0.1:27019"
-	var mgo, err = longo.NewClient().Connect(&longo.Config{Url: url, WriteConcern: &longo.WriteConcern{W: -1, J: true, WTimeout: 10 * time.Second}})
+	var mgo, err = longo.NewClient().Connect(&longo.Config{
+		Url: url, WriteConcern: &longo.WriteConcern{W: -1, J: true, WTimeout: 10 * time.Second},
+		Compressors: []string{"zstd"},
+	})
 	if err != nil {
 		panic(err)
 	}

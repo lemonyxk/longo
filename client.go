@@ -118,13 +118,13 @@ func (c *Client) Connect(config *Config, opts ...*options.ClientOptions) (*Mgo, 
 	opts = append(opts, option)
 
 	opts = append(opts, &options.ClientOptions{
-		Direct:                 &c.config.Direct,
-		ReadPreference:         c.config.ReadPreference,                 // default is Primary
-		ReadConcern:            c.config.ReadConcern,                    // default is local
-		WriteConcern:           NewWriteConcern(*c.config.WriteConcern), // default is w:-1 j:false wTimeout:when w > 1
-		ConnectTimeout:         &c.config.ConnectTimeout,
-		SocketTimeout:          &c.config.ConnectTimeout,
-		ServerSelectionTimeout: &c.config.ConnectTimeout,
+		Compressors:    c.config.Compressors,
+		Direct:         &c.config.Direct,
+		ReadPreference: c.config.ReadPreference,                 // default is Primary
+		ReadConcern:    c.config.ReadConcern,                    // default is local
+		WriteConcern:   NewWriteConcern(*c.config.WriteConcern), // default is w:-1 j:false wTimeout:when w > 1
+		ConnectTimeout: &c.config.ConnectTimeout,
+		Timeout:        &c.config.Timeout,
 	})
 
 	client, err := mongo.Connect(context.Background(), opts...)

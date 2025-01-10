@@ -29,5 +29,7 @@ type Config struct {
 	ReadConcern    *readconcern.ReadConcern
 	WriteConcern   *WriteConcern
 	ConnectTimeout time.Duration
+	Timeout        time.Duration
+	Compressors    []string
 	Register       *bsoncodec.Registry
 }
