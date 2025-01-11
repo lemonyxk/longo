@@ -12,9 +12,6 @@ package longo
 
 import (
 	"context"
-	"github.com/lemonyxk/longo/call"
-	"time"
-
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -70,38 +67,38 @@ func (f *FindOneAndUpdate) Option(opt *options.FindOneAndUpdateOptions) *FindOne
 
 func (f *FindOneAndUpdate) Exec(result interface{}) error {
 
-	var t = time.Now()
-	var res int64 = 0
-	var err error
-
-	defer func() {
-		call.Default.Call(call.Record{
-			Meta: call.Meta{
-				Database:   f.collection.Database().Name(),
-				Collection: f.collection.Name(),
-				Type:       call.FindOneAndUpdate,
-			},
-			Query: call.Query{
-				Filter:  f.filter,
-				Updater: f.update,
-			},
-			Result: call.Result{
-				Insert: 0,
-				Update: res,
-				Delete: 0,
-				Match:  res,
-				Upsert: 0,
-			},
-			Consuming: time.Since(t).Microseconds(),
-			Error:     err,
-		})
-	}()
+	//var t = time.Now()
+	//var res int64 = 0
+	//var err error
+	//
+	//defer func() {
+	//	call.Default.Call(call.Record{
+	//		Meta: call.Meta{
+	//			Database:   f.collection.Database().Name(),
+	//			Collection: f.collection.Name(),
+	//			Type:       call.FindOneAndUpdate,
+	//		},
+	//		Query: call.Query{
+	//			Filter:  f.filter,
+	//			Updater: f.update,
+	//		},
+	//		Result: call.Result{
+	//			Insert: 0,
+	//			Update: res,
+	//			Delete: 0,
+	//			Match:  res,
+	//			Upsert: 0,
+	//		},
+	//		Consuming: time.Since(t).Microseconds(),
+	//		Error:     err,
+	//	})
+	//}()
 
 	var cursor = &SingleResult{singleResult: f.collection.FindOneAndUpdate(f.sessionContext, f.filter, f.update, f.option)}
-	err = cursor.Get(result)
+	err := cursor.Get(result)
 	if err != nil {
 		return err
 	}
-	res = 1
+	//res = 1
 	return nil
 }

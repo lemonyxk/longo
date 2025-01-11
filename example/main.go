@@ -12,11 +12,9 @@ package main
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
 	"github.com/lemonyxk/longo"
-	"github.com/lemonyxk/longo/call"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"log"
 	"time"
 )
@@ -50,7 +48,6 @@ func main() {
 	var url = "mongodb://root:1354243@127.0.0.1:27017,127.0.0.1:27018,127.0.0.1:27019"
 	var mgo, err = longo.NewClient().Connect(&longo.Config{
 		Url: url, WriteConcern: &longo.WriteConcern{W: -1, J: true, WTimeout: 10 * time.Second},
-		Compressors: []string{"zstd"},
 	})
 	if err != nil {
 		panic(err)
@@ -61,14 +58,14 @@ func main() {
 		panic(err)
 	}
 
-	call.Default.Database("*").Collection().Type().Watch(func(info call.Record) {
-		bts, err := json.Marshal(info)
-		if err != nil {
-			panic(err)
-		}
-
-		fmt.Println(string(bts))
-	})
+	//call.Default.Database("*").Collection().Type().Watch(func(info call.Record) {
+	//	bts, err := json.Marshal(info)
+	//	if err != nil {
+	//		panic(err)
+	//	}
+	//
+	//	fmt.Println(string(bts))
+	//})
 
 	var start = time.Now()
 
@@ -88,7 +85,7 @@ func main() {
 	var test = longo.NewModel[[]*Test2](context.Background(), mgo).DB("test").C("test")
 	//var test1 = longo.NewModel[[]*Test2](context.Background(), mgo).DB("test").C("test1")
 
-	test.Find(bson.M{"_id": 1}).All()
+	log.Println(test.Insert(&Test2{"_id": 1, "add": 1}, &Test2{"_id": 2, "add": 1}).Option(options.InsertMany().SetOrdered(false)).Exec())
 
 	//_ = test
 	//

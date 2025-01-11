@@ -13,9 +13,6 @@ package longo
 import (
 	"context"
 	"fmt"
-	"github.com/lemonyxk/longo/call"
-	"time"
-
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -43,37 +40,37 @@ func (f *InsertMany) Context(ctx context.Context) *InsertMany {
 
 func (f *InsertMany) Exec() (*mongo.InsertManyResult, error) {
 
-	var t = time.Now()
-	var res *mongo.InsertManyResult
-	var err error
+	//var t = time.Now()
+	//var res *mongo.InsertManyResult
+	//var err error
+	//
+	//defer func() {
+	//	if res == nil {
+	//		res = &mongo.InsertManyResult{}
+	//	}
+	//	call.Default.Call(call.Record{
+	//		Meta: call.Meta{
+	//			Database:   f.collection.Database().Name(),
+	//			Collection: f.collection.Name(),
+	//			Type:       call.InsertMany,
+	//		},
+	//		Query: call.Query{
+	//			Filter:  nil,
+	//			Updater: nil,
+	//		},
+	//		Result: call.Result{
+	//			Insert: int64(len(res.InsertedIDs)),
+	//			Update: 0,
+	//			Delete: 0,
+	//			Match:  0,
+	//			Upsert: 0,
+	//		},
+	//		Consuming: time.Since(t).Microseconds(),
+	//		Error:     err,
+	//	})
+	//}()
 
-	defer func() {
-		if res == nil {
-			res = &mongo.InsertManyResult{}
-		}
-		call.Default.Call(call.Record{
-			Meta: call.Meta{
-				Database:   f.collection.Database().Name(),
-				Collection: f.collection.Name(),
-				Type:       call.InsertMany,
-			},
-			Query: call.Query{
-				Filter:  nil,
-				Updater: nil,
-			},
-			Result: call.Result{
-				Insert: int64(len(res.InsertedIDs)),
-				Update: 0,
-				Delete: 0,
-				Match:  0,
-				Upsert: 0,
-			},
-			Consuming: time.Since(t).Microseconds(),
-			Error:     err,
-		})
-	}()
-
-	res, err = f.collection.InsertMany(f.sessionContext, f.document, f.insertManyOption)
+	res, err := f.collection.InsertMany(f.sessionContext, f.document, f.insertManyOption)
 	if err != nil {
 		return nil, err
 	}

@@ -13,9 +13,6 @@ package longo
 import (
 	"context"
 	"fmt"
-	"github.com/lemonyxk/longo/call"
-	"time"
-
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -63,37 +60,37 @@ func (f *UpdateMany) MustUpsert() *UpdateMany {
 
 func (f *UpdateMany) Exec() (*mongo.UpdateResult, error) {
 
-	var t = time.Now()
-	var res *mongo.UpdateResult
-	var err error
+	//var t = time.Now()
+	//var res *mongo.UpdateResult
+	//var err error
+	//
+	//defer func() {
+	//	if res == nil {
+	//		res = &mongo.UpdateResult{}
+	//	}
+	//	call.Default.Call(call.Record{
+	//		Meta: call.Meta{
+	//			Database:   f.collection.Database().Name(),
+	//			Collection: f.collection.Name(),
+	//			Type:       call.UpdateMany,
+	//		},
+	//		Query: call.Query{
+	//			Filter:  f.filter,
+	//			Updater: f.update,
+	//		},
+	//		Result: call.Result{
+	//			Insert: 0,
+	//			Update: res.ModifiedCount,
+	//			Delete: 0,
+	//			Match:  res.MatchedCount,
+	//			Upsert: res.UpsertedCount,
+	//		},
+	//		Consuming: time.Since(t).Microseconds(),
+	//		Error:     err,
+	//	})
+	//}()
 
-	defer func() {
-		if res == nil {
-			res = &mongo.UpdateResult{}
-		}
-		call.Default.Call(call.Record{
-			Meta: call.Meta{
-				Database:   f.collection.Database().Name(),
-				Collection: f.collection.Name(),
-				Type:       call.UpdateMany,
-			},
-			Query: call.Query{
-				Filter:  f.filter,
-				Updater: f.update,
-			},
-			Result: call.Result{
-				Insert: 0,
-				Update: res.ModifiedCount,
-				Delete: 0,
-				Match:  res.MatchedCount,
-				Upsert: res.UpsertedCount,
-			},
-			Consuming: time.Since(t).Microseconds(),
-			Error:     err,
-		})
-	}()
-
-	res, err = f.collection.UpdateMany(f.sessionContext, f.filter, f.update, f.updateManyOption)
+	res, err := f.collection.UpdateMany(f.sessionContext, f.filter, f.update, f.updateManyOption)
 	if err != nil {
 		return nil, err
 	}

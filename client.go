@@ -84,6 +84,10 @@ func (c *Client) init(config *Config) {
 	if c.config.ConnectTimeout == 0 {
 		c.config.ConnectTimeout = 3 * time.Second
 	}
+
+	if c.config.Timeout == 0 {
+		c.config.Timeout = 6 * time.Second
+	}
 }
 
 func (c *Client) Connect(config *Config, opts ...*options.ClientOptions) (*Mgo, error) {

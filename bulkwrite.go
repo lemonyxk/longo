@@ -13,9 +13,6 @@ package longo
 import (
 	"context"
 	"fmt"
-	"github.com/lemonyxk/longo/call"
-	"time"
-
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -74,37 +71,37 @@ func (f *BulkWrite) MustInserted() *BulkWrite {
 
 func (f *BulkWrite) Exec() (*mongo.BulkWriteResult, error) {
 
-	var t = time.Now()
-	var res *mongo.BulkWriteResult
-	var err error
+	//var t = time.Now()
+	//var res *mongo.BulkWriteResult
+	//var err error
+	//
+	//defer func() {
+	//	if res == nil {
+	//		res = &mongo.BulkWriteResult{}
+	//	}
+	//	call.Default.Call(call.Record{
+	//		Meta: call.Meta{
+	//			Database:   f.collection.Database().Name(),
+	//			Collection: f.collection.Name(),
+	//			Type:       call.BulkWrite,
+	//		},
+	//		Query: call.Query{
+	//			Filter:  nil,
+	//			Updater: nil,
+	//		},
+	//		Result: call.Result{
+	//			Insert: res.InsertedCount,
+	//			Update: res.ModifiedCount,
+	//			Delete: res.DeletedCount,
+	//			Match:  res.MatchedCount,
+	//			Upsert: res.UpsertedCount,
+	//		},
+	//		Consuming: time.Since(t).Microseconds(),
+	//		Error:     err,
+	//	})
+	//}()
 
-	defer func() {
-		if res == nil {
-			res = &mongo.BulkWriteResult{}
-		}
-		call.Default.Call(call.Record{
-			Meta: call.Meta{
-				Database:   f.collection.Database().Name(),
-				Collection: f.collection.Name(),
-				Type:       call.BulkWrite,
-			},
-			Query: call.Query{
-				Filter:  nil,
-				Updater: nil,
-			},
-			Result: call.Result{
-				Insert: res.InsertedCount,
-				Update: res.ModifiedCount,
-				Delete: res.DeletedCount,
-				Match:  res.MatchedCount,
-				Upsert: res.UpsertedCount,
-			},
-			Consuming: time.Since(t).Microseconds(),
-			Error:     err,
-		})
-	}()
-
-	res, err = f.collection.BulkWrite(f.sessionContext, f.models, f.bulkWriteOptions)
+	res, err := f.collection.BulkWrite(f.sessionContext, f.models, f.bulkWriteOptions)
 	if err != nil {
 		return nil, err
 	}

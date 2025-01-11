@@ -13,9 +13,6 @@ package longo
 import (
 	"context"
 	"fmt"
-	"github.com/lemonyxk/longo/call"
-	"time"
-
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -50,38 +47,37 @@ func (f *DeleteOne) MustDeleted() *DeleteOne {
 
 func (f *DeleteOne) Exec() (*mongo.DeleteResult, error) {
 
-	var t = time.Now()
+	//var t = time.Now()
+	//var res *mongo.DeleteResult
+	//var err error
+	//
+	//defer func() {
+	//	if res == nil {
+	//		res = &mongo.DeleteResult{}
+	//	}
+	//	call.Default.Call(call.Record{
+	//		Meta: call.Meta{
+	//			Database:   f.collection.Database().Name(),
+	//			Collection: f.collection.Name(),
+	//			Type:       call.DeleteOne,
+	//		},
+	//		Query: call.Query{
+	//			Filter:  f.filter,
+	//			Updater: nil,
+	//		},
+	//		Result: call.Result{
+	//			Insert: 0,
+	//			Update: 0,
+	//			Delete: res.DeletedCount,
+	//			Match:  0,
+	//			Upsert: 0,
+	//		},
+	//		Consuming: time.Since(t).Microseconds(),
+	//		Error:     err,
+	//	})
+	//}()
 
-	var res *mongo.DeleteResult
-	var err error
-
-	defer func() {
-		if res == nil {
-			res = &mongo.DeleteResult{}
-		}
-		call.Default.Call(call.Record{
-			Meta: call.Meta{
-				Database:   f.collection.Database().Name(),
-				Collection: f.collection.Name(),
-				Type:       call.DeleteOne,
-			},
-			Query: call.Query{
-				Filter:  f.filter,
-				Updater: nil,
-			},
-			Result: call.Result{
-				Insert: 0,
-				Update: 0,
-				Delete: res.DeletedCount,
-				Match:  0,
-				Upsert: 0,
-			},
-			Consuming: time.Since(t).Microseconds(),
-			Error:     err,
-		})
-	}()
-
-	res, err = f.collection.DeleteOne(f.sessionContext, f.filter, f.deleteOneOption)
+	res, err := f.collection.DeleteOne(f.sessionContext, f.filter, f.deleteOneOption)
 	if err != nil {
 		return nil, err
 	}

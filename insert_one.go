@@ -13,9 +13,6 @@ package longo
 import (
 	"context"
 	"fmt"
-	"github.com/lemonyxk/longo/call"
-	"time"
-
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -43,37 +40,37 @@ func (f *InsertOne) Context(ctx context.Context) *InsertOne {
 
 func (f *InsertOne) Exec() (*mongo.InsertOneResult, error) {
 
-	var t = time.Now()
-	var res *mongo.InsertOneResult
-	var err error
+	//var t = time.Now()
+	//var res *mongo.InsertOneResult
+	//var err error
+	//
+	//defer func() {
+	//	if res == nil {
+	//		res = &mongo.InsertOneResult{}
+	//	}
+	//	call.Default.Call(call.Record{
+	//		Meta: call.Meta{
+	//			Database:   f.collection.Database().Name(),
+	//			Collection: f.collection.Name(),
+	//			Type:       call.InsertOne,
+	//		},
+	//		Query: call.Query{
+	//			Filter:  nil,
+	//			Updater: nil,
+	//		},
+	//		Result: call.Result{
+	//			Insert: 1,
+	//			Update: 0,
+	//			Delete: 0,
+	//			Match:  0,
+	//			Upsert: 0,
+	//		},
+	//		Consuming: time.Since(t).Microseconds(),
+	//		Error:     err,
+	//	})
+	//}()
 
-	defer func() {
-		if res == nil {
-			res = &mongo.InsertOneResult{}
-		}
-		call.Default.Call(call.Record{
-			Meta: call.Meta{
-				Database:   f.collection.Database().Name(),
-				Collection: f.collection.Name(),
-				Type:       call.InsertOne,
-			},
-			Query: call.Query{
-				Filter:  nil,
-				Updater: nil,
-			},
-			Result: call.Result{
-				Insert: 1,
-				Update: 0,
-				Delete: 0,
-				Match:  0,
-				Upsert: 0,
-			},
-			Consuming: time.Since(t).Microseconds(),
-			Error:     err,
-		})
-	}()
-
-	res, err = f.collection.InsertOne(f.sessionContext, f.document, f.insertOneOption)
+	res, err := f.collection.InsertOne(f.sessionContext, f.document, f.insertOneOption)
 	if err != nil {
 		return nil, err
 	}
