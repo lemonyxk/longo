@@ -12,12 +12,11 @@ package longo
 
 import (
 	"context"
-	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 	"reflect"
 	"strings"
-
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func NewModel[T ~[]*E, E any](ctx context.Context, handler *Mgo) *DBModel[T, E] {
@@ -32,7 +31,7 @@ type DBModel[T ~[]*E, E any] struct {
 	Ctx     context.Context
 }
 
-func (p *DBModel[T, E]) DB(db string, opt ...*options.DatabaseOptions) *CModel[T, E] {
+func (p *DBModel[T, E]) DB(db string, opt ...options.Lister[options.DatabaseOptions]) *CModel[T, E] {
 	return &CModel[T, E]{
 		DB:              db,
 		DatabaseOptions: opt,
@@ -42,11 +41,11 @@ func (p *DBModel[T, E]) DB(db string, opt ...*options.DatabaseOptions) *CModel[T
 
 type CModel[T ~[]*E, E any] struct {
 	DB              string
-	DatabaseOptions []*options.DatabaseOptions
+	DatabaseOptions []options.Lister[options.DatabaseOptions]
 	*DBModel[T, E]
 }
 
-func (p *CModel[T, E]) C(collection string, opt ...*options.CollectionOptions) *Model[T, E] {
+func (p *CModel[T, E]) C(collection string, opt ...options.Lister[options.CollectionOptions]) *Model[T, E] {
 	return &Model[T, E]{
 		DB:                p.DB,
 		C:                 collection,
@@ -63,8 +62,8 @@ type Model[T ~[]*E, E any] struct {
 	DB                string
 	C                 string
 	Ctx               context.Context
-	DatabaseOptions   []*options.DatabaseOptions
-	CollectionOptions []*options.CollectionOptions
+	DatabaseOptions   []options.Lister[options.DatabaseOptions]
+	CollectionOptions []options.Lister[options.CollectionOptions]
 }
 
 func (p *Model[T, E]) CreateIndex() error {
@@ -181,29 +180,44 @@ type FindOneAndReplaceResult[T ~[]*E, E any] struct {
 }
 
 func (f *FindOneAndReplaceResult[T, E]) Hit(hit interface{}) *FindOneAndReplaceResult[T, E] {
-	f.option.Hint = hit
+	f.option.Opts = append(f.option.Opts, func(findOptions *options.FindOneAndReplaceOptions) error {
+		findOptions.Hint = hit
+		return nil
+	})
 	return f
 }
 
 func (f *FindOneAndReplaceResult[T, E]) Sort(sort interface{}) *FindOneAndReplaceResult[T, E] {
-	f.option.Sort = sort
+	f.option.Opts = append(f.option.Opts, func(findOptions *options.FindOneAndReplaceOptions) error {
+		findOptions.Sort = sort
+		return nil
+	})
 	return f
 }
 
 func (f *FindOneAndReplaceResult[T, E]) Projection(projection interface{}) *FindOneAndReplaceResult[T, E] {
-	f.option.Projection = projection
+	f.option.Opts = append(f.option.Opts, func(findOptions *options.FindOneAndReplaceOptions) error {
+		findOptions.Projection = projection
+		return nil
+	})
 	return f
 }
 
 func (f *FindOneAndReplaceResult[T, E]) Upsert() *FindOneAndReplaceResult[T, E] {
-	var t = true
-	f.option.Upsert = &t
+	f.option.Opts = append(f.option.Opts, func(findOptions *options.FindOneAndReplaceOptions) error {
+		var t = true
+		findOptions.Upsert = &t
+		return nil
+	})
 	return f
 }
 
 func (f *FindOneAndReplaceResult[T, E]) ReturnDocument() *FindOneAndReplaceResult[T, E] {
-	var t = options.After
-	f.option.ReturnDocument = &t
+	f.option.Opts = append(f.option.Opts, func(findOptions *options.FindOneAndReplaceOptions) error {
+		var t = options.After
+		findOptions.ReturnDocument = &t
+		return nil
+	})
 	return f
 }
 
@@ -212,7 +226,7 @@ func (f *FindOneAndReplaceResult[T, E]) Context(ctx context.Context) *FindOneAnd
 	return f
 }
 
-func (f *FindOneAndReplaceResult[T, E]) Option(opt *options.FindOneAndReplaceOptions) *FindOneAndReplaceResult[T, E] {
+func (f *FindOneAndReplaceResult[T, E]) Option(opt *options.FindOneAndReplaceOptionsBuilder) *FindOneAndReplaceResult[T, E] {
 	f.option = opt
 	return f
 }
@@ -234,17 +248,26 @@ type FindOneAndDeleteResult[T ~[]*E, E any] struct {
 }
 
 func (f *FindOneAndDeleteResult[T, E]) Hit(hit interface{}) *FindOneAndDeleteResult[T, E] {
-	f.option.Hint = hit
+	f.option.Opts = append(f.option.Opts, func(findOptions *options.FindOneAndDeleteOptions) error {
+		findOptions.Hint = hit
+		return nil
+	})
 	return f
 }
 
 func (f *FindOneAndDeleteResult[T, E]) Sort(sort interface{}) *FindOneAndDeleteResult[T, E] {
-	f.option.Sort = sort
+	f.option.Opts = append(f.option.Opts, func(findOptions *options.FindOneAndDeleteOptions) error {
+		findOptions.Sort = sort
+		return nil
+	})
 	return f
 }
 
 func (f *FindOneAndDeleteResult[T, E]) Projection(projection interface{}) *FindOneAndDeleteResult[T, E] {
-	f.option.Projection = projection
+	f.option.Opts = append(f.option.Opts, func(findOptions *options.FindOneAndDeleteOptions) error {
+		findOptions.Projection = projection
+		return nil
+	})
 	return f
 }
 
@@ -253,7 +276,7 @@ func (f *FindOneAndDeleteResult[T, E]) Context(ctx context.Context) *FindOneAndD
 	return f
 }
 
-func (f *FindOneAndDeleteResult[T, E]) Option(opt *options.FindOneAndDeleteOptions) *FindOneAndDeleteResult[T, E] {
+func (f *FindOneAndDeleteResult[T, E]) Option(opt *options.FindOneAndDeleteOptionsBuilder) *FindOneAndDeleteResult[T, E] {
 	f.option = opt
 	return f
 }
@@ -275,29 +298,44 @@ type FindOneAndUpdateResult[T ~[]*E, E any] struct {
 }
 
 func (f *FindOneAndUpdateResult[T, E]) Hit(hit interface{}) *FindOneAndUpdateResult[T, E] {
-	f.option.Hint = hit
+	f.option.Opts = append(f.option.Opts, func(findOptions *options.FindOneAndUpdateOptions) error {
+		findOptions.Hint = hit
+		return nil
+	})
 	return f
 }
 
 func (f *FindOneAndUpdateResult[T, E]) Sort(sort interface{}) *FindOneAndUpdateResult[T, E] {
-	f.option.Sort = sort
+	f.option.Opts = append(f.option.Opts, func(findOptions *options.FindOneAndUpdateOptions) error {
+		findOptions.Sort = sort
+		return nil
+	})
 	return f
 }
 
 func (f *FindOneAndUpdateResult[T, E]) Projection(projection interface{}) *FindOneAndUpdateResult[T, E] {
-	f.option.Projection = projection
+	f.option.Opts = append(f.option.Opts, func(findOptions *options.FindOneAndUpdateOptions) error {
+		findOptions.Projection = projection
+		return nil
+	})
 	return f
 }
 
 func (f *FindOneAndUpdateResult[T, E]) Upsert() *FindOneAndUpdateResult[T, E] {
-	var t = true
-	f.option.Upsert = &t
+	f.option.Opts = append(f.option.Opts, func(findOptions *options.FindOneAndUpdateOptions) error {
+		var t = true
+		findOptions.Upsert = &t
+		return nil
+	})
 	return f
 }
 
 func (f *FindOneAndUpdateResult[T, E]) ReturnDocument() *FindOneAndUpdateResult[T, E] {
-	var t = options.After
-	f.option.ReturnDocument = &t
+	f.option.Opts = append(f.option.Opts, func(findOptions *options.FindOneAndUpdateOptions) error {
+		var t = options.After
+		findOptions.ReturnDocument = &t
+		return nil
+	})
 	return f
 }
 
@@ -306,7 +344,7 @@ func (f *FindOneAndUpdateResult[T, E]) Context(ctx context.Context) *FindOneAndU
 	return f
 }
 
-func (f *FindOneAndUpdateResult[T, E]) Option(opt *options.FindOneAndUpdateOptions) *FindOneAndUpdateResult[T, E] {
+func (f *FindOneAndUpdateResult[T, E]) Option(opt *options.FindOneAndUpdateOptionsBuilder) *FindOneAndUpdateResult[T, E] {
 	f.option = opt
 	return f
 }
@@ -357,7 +395,7 @@ func (p *FindResult[T, E]) Context(ctx context.Context) *FindResult[T, E] {
 	return p
 }
 
-func (p *FindResult[T, E]) Count(opts ...*options.CountOptions) (int64, error) {
+func (p *FindResult[T, E]) Count(opts ...options.Lister[options.CountOptions]) (int64, error) {
 	return p.Find.Count(opts...)
 }
 

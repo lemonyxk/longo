@@ -13,14 +13,14 @@ package tran
 import (
 	"context"
 	"errors"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 	"sync"
 	"testing"
 	"time"
 
 	"github.com/lemonyxk/longo"
 	"github.com/stretchr/testify/assert"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type TestDB struct {
@@ -81,15 +81,15 @@ func Test_Transaction_Success(t *testing.T) {
 		wait.Done()
 	})
 
-	var err = mgo.Transaction(func(handler *longo.Mgo, sessionContext mongo.SessionContext) error {
-		_, err := test1.Insert(&TestDB{ID: 1, Add: 1}).Context(sessionContext).Exec()
+	var err = mgo.Transaction(func(handler *longo.Mgo, ctx context.Context) error {
+		_, err := test1.Insert(&TestDB{ID: 1, Add: 1}).Context(ctx).Exec()
 		if err != nil {
 			return err
 		}
 
 		time.Sleep(time.Millisecond * 150)
 
-		_, err = test2.Insert(&TestDB{ID: 1, Add: 1}).Context(sessionContext).Exec()
+		_, err = test2.Insert(&TestDB{ID: 1, Add: 1}).Context(ctx).Exec()
 		if err != nil {
 			return err
 		}
@@ -102,6 +102,34 @@ func Test_Transaction_Success(t *testing.T) {
 	wait.Wait()
 }
 
+func Test_Transaction_Fail(t *testing.T) {
+
+	var test1 = longo.NewModel[[]*TestDB](context.Background(), mgo).DB("Test_3").C("Test_Transaction_Fail1")
+
+	var err = mgo.Transaction(func(handler *longo.Mgo, ctx context.Context) error {
+		_, err := test1.Insert(&TestDB{ID: 1, Add: 1}).Context(ctx).Exec()
+		if err != nil {
+			return err
+		}
+
+		time.Sleep(time.Millisecond * 150)
+
+		_, err = test1.Insert(&TestDB{ID: 2, Add: 1}).Context(ctx).Exec()
+		if err != nil {
+			return err
+		}
+
+		return errors.New("test error")
+	})
+
+	assert.True(t, err != nil, err)
+
+	a, err := test1.FindOne(bson.M{"id": 1}).Get()
+	assert.True(t, err == nil, err)
+
+	assert.True(t, a.ID == 0, a)
+}
+
 func Test_Transaction_RepeatableOutsideWithRead(t *testing.T) {
 
 	var wait sync.WaitGroup
@@ -111,16 +139,16 @@ func Test_Transaction_RepeatableOutsideWithRead(t *testing.T) {
 	var test = longo.NewModel[[]*TestDB](context.Background(), mgo).DB("Test_3").C("Test_Transaction_RepeatableOutsideWithRead")
 
 	go func() {
-		var err = mgo.TransactionWithLock(func(handler *longo.Mgo, sessionContext mongo.SessionContext) error {
+		var err = mgo.TransactionWithLock(func(handler *longo.Mgo, ctx context.Context) error {
 
-			res1, err := test.Find(bson.M{}).Context(sessionContext).All()
+			res1, err := test.Find(bson.M{}).Context(ctx).All()
 			if err != nil {
 				return errors.New("repeatable read 1: " + err.Error())
 			}
 
 			time.Sleep(time.Millisecond * 500)
 
-			res2, err := test.Find(bson.M{}).Context(sessionContext).All()
+			res2, err := test.Find(bson.M{}).Context(ctx).All()
 			if err != nil {
 				return errors.New("repeatable read 2: " + err.Error())
 			}
@@ -157,16 +185,16 @@ func Test_Transaction_RepeatableWithRead(t *testing.T) {
 	var test = longo.NewModel[[]*TestDB](context.Background(), mgo).DB("Test_3").C("Test_Transaction_RepeatableWithRead")
 
 	go func() {
-		var err = mgo.TransactionWithLock(func(handler *longo.Mgo, sessionContext mongo.SessionContext) error {
+		var err = mgo.TransactionWithLock(func(handler *longo.Mgo, ctx context.Context) error {
 
-			res1, err := test.Find(bson.M{}).Context(sessionContext).All()
+			res1, err := test.Find(bson.M{}).Context(ctx).All()
 			if err != nil {
 				return errors.New("repeatable read 1: " + err.Error())
 			}
 
 			time.Sleep(time.Millisecond * 500)
 
-			res2, err := test.Find(bson.M{}).Context(sessionContext).All()
+			res2, err := test.Find(bson.M{}).Context(ctx).All()
 			if err != nil {
 				return errors.New("repeatable read 2: " + err.Error())
 			}
@@ -186,8 +214,8 @@ func Test_Transaction_RepeatableWithRead(t *testing.T) {
 	go func() {
 		time.Sleep(time.Millisecond * 200)
 
-		var err = mgo.Transaction(func(handler *longo.Mgo, sessionContext mongo.SessionContext) error {
-			_, err := test.Insert(&TestDB{ID: 1, Add: 1}).Context(sessionContext).Exec()
+		var err = mgo.Transaction(func(handler *longo.Mgo, ctx context.Context) error {
+			_, err := test.Insert(&TestDB{ID: 1, Add: 1}).Context(ctx).Exec()
 			return err
 		})
 
@@ -210,16 +238,16 @@ func Test_Transaction_RepeatableOutsideWithWrite(t *testing.T) {
 	test.Insert(&TestDB{ID: 999, Add: 999}).Exec()
 
 	go func() {
-		var err = mgo.TransactionWithLock(func(handler *longo.Mgo, sessionContext mongo.SessionContext) error {
+		var err = mgo.TransactionWithLock(func(handler *longo.Mgo, ctx context.Context) error {
 
-			_, err := test.Find(bson.M{}).Context(sessionContext).All()
+			_, err := test.Find(bson.M{}).Context(ctx).All()
 			if err != nil {
 				return errors.New("repeatable read 1: " + err.Error())
 			}
 
 			time.Sleep(time.Millisecond * 500)
 
-			_, err = test.Insert(&TestDB{ID: 1, Add: 1}).Context(sessionContext).Exec()
+			_, err = test.Insert(&TestDB{ID: 1, Add: 1}).Context(ctx).Exec()
 			if err != nil {
 				return errors.New("repeatable write 2: " + err.Error())
 			}
@@ -253,16 +281,16 @@ func Test_Transaction_RepeatableWithWrite(t *testing.T) {
 	test.Insert(&TestDB{ID: 999, Add: 999}).Exec()
 
 	go func() {
-		var err = mgo.TransactionWithLock(func(handler *longo.Mgo, sessionContext mongo.SessionContext) error {
+		var err = mgo.TransactionWithLock(func(handler *longo.Mgo, ctx context.Context) error {
 
-			_, err := test.Find(bson.M{}).Context(sessionContext).All()
+			_, err := test.Find(bson.M{}).Context(ctx).All()
 			if err != nil {
 				return errors.New("repeatable read 1: " + err.Error())
 			}
 
 			time.Sleep(time.Millisecond * 500)
 
-			_, err = test.Insert(&TestDB{ID: 1, Add: 1}).Context(sessionContext).Exec()
+			_, err = test.Insert(&TestDB{ID: 1, Add: 1}).Context(ctx).Exec()
 			if err != nil {
 				return errors.New("repeatable write 2: " + err.Error())
 			}
@@ -277,8 +305,8 @@ func Test_Transaction_RepeatableWithWrite(t *testing.T) {
 
 	go func() {
 		time.Sleep(time.Millisecond * 200)
-		var err = mgo.Transaction(func(handler *longo.Mgo, sessionContext mongo.SessionContext) error {
-			_, err := test.Insert(&TestDB{ID: 2, Add: 2}).Context(sessionContext).Exec()
+		var err = mgo.Transaction(func(handler *longo.Mgo, ctx context.Context) error {
+			_, err := test.Insert(&TestDB{ID: 2, Add: 2}).Context(ctx).Exec()
 			return err
 		})
 
@@ -304,11 +332,11 @@ func Test_Transaction_Set(t *testing.T) {
 	// in UseSession, the transaction will be failed cause the write conflict
 	// but in WithTransaction, the transaction will be success cause will retry
 	go func() {
-		var err = mgo.Transaction(func(handler *longo.Mgo, sessionContext mongo.SessionContext) error {
+		var err = mgo.Transaction(func(handler *longo.Mgo, ctx context.Context) error {
 
 			time.Sleep(time.Millisecond * 100)
 
-			c, err := test.Update(bson.M{"id": 1}, bson.M{"$set": bson.M{"add": 1}}).Context(sessionContext).Exec()
+			c, err := test.Update(bson.M{"id": 1}, bson.M{"$set": bson.M{"add": 1}}).Context(ctx).Exec()
 			if err != nil {
 				return err
 			}
@@ -325,9 +353,9 @@ func Test_Transaction_Set(t *testing.T) {
 	}()
 
 	go func() {
-		var err = mgo.Transaction(func(handler *longo.Mgo, sessionContext mongo.SessionContext) error {
+		var err = mgo.Transaction(func(handler *longo.Mgo, ctx context.Context) error {
 
-			c, err := test.Update(bson.M{"id": 1}, bson.M{"$set": bson.M{"add": 2}}).Context(sessionContext).Exec()
+			c, err := test.Update(bson.M{"id": 1}, bson.M{"$set": bson.M{"add": 2}}).Context(ctx).Exec()
 			if err != nil {
 				return err
 			}
@@ -358,9 +386,9 @@ func Test_Transaction_Set_Wait(t *testing.T) {
 	assert.True(t, err == nil, err)
 
 	go func() {
-		var err = mgo.Transaction(func(handler *longo.Mgo, sessionContext mongo.SessionContext) error {
+		var err = mgo.Transaction(func(handler *longo.Mgo, ctx context.Context) error {
 			time.Sleep(time.Millisecond * 500)
-			_, err := test.Set(bson.M{"id": 1}, bson.M{"add": 2}).Context(sessionContext).Exec()
+			_, err := test.Set(bson.M{"id": 1}, bson.M{"add": 2}).Context(ctx).Exec()
 			if err != nil {
 				return err
 			}

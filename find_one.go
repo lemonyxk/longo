@@ -12,38 +12,51 @@ package longo
 
 import (
 	"context"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 type FindOne struct {
 	collection     *mongo.Collection
-	option         *options.FindOneOptions
+	option         *options.FindOneOptionsBuilder
 	filter         interface{}
 	sessionContext context.Context
 }
 
 func NewFindOne(ctx context.Context, collection *mongo.Collection, filter interface{}) *FindOne {
-	return &FindOne{collection: collection, option: &options.FindOneOptions{}, filter: filter, sessionContext: ctx}
+	return &FindOne{collection: collection, option: options.FindOne(), filter: filter, sessionContext: ctx}
 }
 
 func (f *FindOne) Hit(hit interface{}) *FindOne {
-	f.option.Hint = hit
+	f.option.Opts = append(f.option.Opts, func(findOptions *options.FindOneOptions) error {
+		findOptions.Hint = hit
+		return nil
+	})
 	return f
 }
 
 func (f *FindOne) Sort(sort interface{}) *FindOne {
-	f.option.Sort = sort
+	f.option.Opts = append(f.option.Opts, func(findOptions *options.FindOneOptions) error {
+		findOptions.Sort = sort
+		return nil
+	})
 	return f
 }
 
 func (f *FindOne) Skip(skip int64) *FindOne {
-	f.option.Skip = &skip
+	f.option.Opts = append(f.option.Opts, func(findOptions *options.FindOneOptions) error {
+		findOptions.Skip = &skip
+		return nil
+	})
 	return f
 }
 
 func (f *FindOne) Projection(projection interface{}) *FindOne {
-	f.option.Projection = projection
+	f.option.Opts = append(f.option.Opts, func(findOptions *options.FindOneOptions) error {
+		findOptions.Projection = projection
+		return nil
+	})
 	return f
 }
 
@@ -52,40 +65,12 @@ func (f *FindOne) Context(ctx context.Context) *FindOne {
 	return f
 }
 
-func (f *FindOne) Option(opt *options.FindOneOptions) *FindOne {
+func (f *FindOne) Option(opt *options.FindOneOptionsBuilder) *FindOne {
 	f.option = opt
 	return f
 }
 
 func (f *FindOne) Get(result interface{}) error {
-
-	//var t = time.Now()
-	//var res int64 = 0
-	//var err error
-	//
-	//defer func() {
-	//	call.Default.Call(call.Record{
-	//		Meta: call.Meta{
-	//			Database:   f.collection.Database().Name(),
-	//			Collection: f.collection.Name(),
-	//			Type:       call.FindOne,
-	//		},
-	//		Query: call.Query{
-	//			Filter:  f.filter,
-	//			Updater: nil,
-	//		},
-	//		Result: call.Result{
-	//			Insert: 0,
-	//			Update: 0,
-	//			Delete: 0,
-	//			Match:  res,
-	//			Upsert: 0,
-	//		},
-	//		Consuming: time.Since(t).Microseconds(),
-	//		Error:     err,
-	//	})
-	//}()
-
 	var cursor = &SingleResult{singleResult: f.collection.FindOne(f.sessionContext, f.filter, f.option)}
 	err := cursor.Get(result)
 	if err == mongo.ErrNoDocuments { // only for FindOne, if modify action, it will return ErrNoDocuments
@@ -94,6 +79,5 @@ func (f *FindOne) Get(result interface{}) error {
 	if err != nil {
 		return err
 	}
-	//res = 1
 	return nil
 }

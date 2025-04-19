@@ -11,11 +11,7 @@
 package main
 
 import (
-	"context"
 	"github.com/lemonyxk/longo"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo/options"
-	"log"
 	"time"
 )
 
@@ -67,25 +63,25 @@ func main() {
 	//	fmt.Println(string(bts))
 	//})
 
-	var start = time.Now()
-
-	var res interface{}
-	err = mgo.DB("test").C("test").FindOneAndUpdate(bson.M{"_id": 1}, bson.M{"$set": bson.M{"name": "2"}}).Sort(bson.M{"tid": -1}).Exec(&res)
-	if err != nil {
-		panic(err)
-	}
-
-	log.Printf("time: %+v\n", time.Since(start))
-	log.Println(res)
+	//var start = time.Now()
+	//
+	//var res interface{}
+	//err = mgo.DB("test").C("test").FindOneAndUpdate(bson.M{"_id": 1}, bson.M{"$set": bson.M{"name": "2"}}).Sort(bson.M{"tid": -1}).Exec(&res)
+	//if err != nil {
+	//	panic(err)
+	//}
+	//
+	//log.Printf("time: %+v\n", time.Since(start))
+	//log.Println(res)
 
 	//for i := 0; i < len(res); i++ {
 	//	log.Printf("%+v\n", res[i])
 	//}
 
-	var test = longo.NewModel[[]*Test2](context.Background(), mgo).DB("test").C("test")
+	//var test = longo.NewModel[[]*Test2](context.Background(), mgo).DB("test").C("test")
 	//var test1 = longo.NewModel[[]*Test2](context.Background(), mgo).DB("test").C("test1")
 
-	log.Println(test.Insert(&Test2{"_id": 1, "add": 1}, &Test2{"_id": 2, "add": 1}).Option(options.InsertMany().SetOrdered(false)).Exec())
+	//log.Println(test.Insert(&Test2{"_id": 1, "add": 1}, &Test2{"_id": 2, "add": 1}).Option(options.InsertMany().SetOrdered(false)).Exec())
 
 	//_ = test
 	//

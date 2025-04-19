@@ -14,11 +14,11 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
-type SingleResult struct {
-	singleResult *mongo.SingleResult
+type DistinctResult struct {
+	distinctResult *mongo.DistinctResult
 }
 
-func (sg *SingleResult) Get(result interface{}) error {
-	var err = sg.singleResult.Decode(result)
+func (sg *DistinctResult) Get(result interface{}) error {
+	var err = sg.distinctResult.Decode(result)
 	return err
 }

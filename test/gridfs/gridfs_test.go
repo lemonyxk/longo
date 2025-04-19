@@ -20,7 +20,6 @@ import (
 
 	"github.com/lemonyxk/longo"
 	"github.com/stretchr/testify/assert"
-	"go.mongodb.org/mongo-driver/mongo/gridfs"
 )
 
 type TestDB struct {
@@ -62,10 +61,9 @@ var NewObjectID = longo.NewObjectID()
 
 func Test_GridFS_Upload(t *testing.T) {
 
-	var bucket, err = gridfs.NewBucket(mgo.RawClient().Database("Test_1"))
-	assert.True(t, err == nil, err)
+	var bucket = mgo.RawClient().Database("Test_1").GridFSBucket()
 
-	file, err := bucket.OpenUploadStreamWithID(NewObjectID, "gridfs_test.go")
+	file, err := bucket.OpenUploadStreamWithID(context.Background(), NewObjectID, "gridfs_test.go")
 	assert.True(t, err == nil, err)
 	assert.True(t, file != nil, file)
 
@@ -83,10 +81,9 @@ func Test_GridFS_Upload(t *testing.T) {
 
 func Test_GridFS_Download(t *testing.T) {
 
-	var bucket, err = gridfs.NewBucket(mgo.RawClient().Database("Test_1"))
-	assert.True(t, err == nil, err)
+	var bucket = mgo.RawClient().Database("Test_1").GridFSBucket()
 
-	file, err := bucket.OpenDownloadStream(NewObjectID)
+	file, err := bucket.OpenDownloadStream(context.Background(), NewObjectID)
 	assert.True(t, err == nil, err)
 	assert.True(t, file != nil, file)
 
@@ -106,13 +103,12 @@ func Test_GridFS_Download(t *testing.T) {
 }
 
 func Test_GridFS_Delete(t *testing.T) {
-	var bucket, err = gridfs.NewBucket(mgo.RawClient().Database("Test_1"))
+	var bucket = mgo.RawClient().Database("Test_1").GridFSBucket()
+
+	err := bucket.Delete(context.Background(), NewObjectID)
 	assert.True(t, err == nil, err)
 
-	err = bucket.Delete(NewObjectID)
-	assert.True(t, err == nil, err)
-
-	file, err := bucket.OpenDownloadStream(NewObjectID)
+	file, err := bucket.OpenDownloadStream(context.Background(), NewObjectID)
 	assert.True(t, err != nil, err)
 	assert.True(t, file == nil, file)
 }

@@ -12,14 +12,14 @@ package model
 
 import (
 	"context"
-	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 	"testing"
 	"time"
 
 	"github.com/lemonyxk/longo"
 	"github.com/stretchr/testify/assert"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 type TestDB struct {
@@ -72,9 +72,7 @@ func Test_Model_InsertMany(t *testing.T) {
 func Test_Model_Find(t *testing.T) {
 	// cuz need read after write,
 	// so we need to set read preference to primary.
-	var test = longo.NewModel[[]*TestDB](context.Background(), mgo).DB("Test_2").C("Test_Model_Find", &options.CollectionOptions{
-		ReadPreference: longo.ReadPreference.Primary,
-	})
+	var test = longo.NewModel[[]*TestDB](context.Background(), mgo).DB("Test_2").C("Test_Model_Find", options.Collection().SetReadPreference(longo.ReadPreference.Primary))
 	_, err := test.Insert(&TestDB{ID: 1, Add: 1}, &TestDB{ID: 2, Add: 2}).Exec()
 	assert.True(t, err == nil, err)
 	a, err := test.FindOne(bson.M{"id": 1}).Get()
@@ -87,9 +85,7 @@ func Test_Model_Find(t *testing.T) {
 }
 
 func Test_Model_FindAll(t *testing.T) {
-	var test = longo.NewModel[[]*TestDB](context.Background(), mgo).DB("Test_2").C("Test_Model_FindAll", &options.CollectionOptions{
-		ReadPreference: longo.ReadPreference.Primary,
-	})
+	var test = longo.NewModel[[]*TestDB](context.Background(), mgo).DB("Test_2").C("Test_Model_FindAll", options.Collection().SetReadPreference(longo.ReadPreference.Primary))
 	_, err := test.Insert(&TestDB{ID: 1, Add: 1}, &TestDB{ID: 2, Add: 2}).Exec()
 	assert.True(t, err == nil, err)
 	a, err := test.Find(bson.M{}).Sort(bson.M{"id": -1}).All()
@@ -100,9 +96,7 @@ func Test_Model_FindAll(t *testing.T) {
 }
 
 func Test_Model_Update(t *testing.T) {
-	var test = longo.NewModel[[]*TestDB](context.Background(), mgo).DB("Test_2").C("Test_Model_Update", &options.CollectionOptions{
-		ReadPreference: longo.ReadPreference.Primary,
-	})
+	var test = longo.NewModel[[]*TestDB](context.Background(), mgo).DB("Test_2").C("Test_Model_Update", options.Collection().SetReadPreference(longo.ReadPreference.Primary))
 	_, err := test.Insert(&TestDB{ID: 1, Add: 1}, &TestDB{ID: 2, Add: 2}).Exec()
 	assert.True(t, err == nil, err)
 	_, err = test.Set(bson.M{"id": 1}, bson.M{"add": 3}).Exec()
@@ -113,9 +107,7 @@ func Test_Model_Update(t *testing.T) {
 }
 
 func Test_Model_UpdateMany(t *testing.T) {
-	var test = longo.NewModel[[]*TestDB](context.Background(), mgo).DB("Test_2").C("Test_Model_UpdateMany", &options.CollectionOptions{
-		ReadPreference: longo.ReadPreference.Primary,
-	})
+	var test = longo.NewModel[[]*TestDB](context.Background(), mgo).DB("Test_2").C("Test_Model_UpdateMany", options.Collection().SetReadPreference(longo.ReadPreference.Primary))
 	_, err := test.Insert(&TestDB{ID: 1, Add: 1}, &TestDB{ID: 2, Add: 2}).Exec()
 	assert.True(t, err == nil, err)
 	_, err = test.Set(bson.M{}, bson.M{"add": 3}).Exec()
@@ -128,9 +120,7 @@ func Test_Model_UpdateMany(t *testing.T) {
 }
 
 func Test_Model_Delete(t *testing.T) {
-	var test = longo.NewModel[[]*TestDB](context.Background(), mgo).DB("Test_2").C("Test_Model_Delete", &options.CollectionOptions{
-		ReadPreference: longo.ReadPreference.Primary,
-	})
+	var test = longo.NewModel[[]*TestDB](context.Background(), mgo).DB("Test_2").C("Test_Model_Delete", options.Collection().SetReadPreference(longo.ReadPreference.Primary))
 	_, err := test.Insert(&TestDB{ID: 1, Add: 1}, &TestDB{ID: 2, Add: 2}).Exec()
 	assert.True(t, err == nil, err)
 	_, err = test.Delete(bson.M{"id": 1}).Exec()
@@ -142,9 +132,7 @@ func Test_Model_Delete(t *testing.T) {
 }
 
 func Test_Model_DeleteMany(t *testing.T) {
-	var test = longo.NewModel[[]*TestDB](context.Background(), mgo).DB("Test_2").C("Test_Model_DeleteMany", &options.CollectionOptions{
-		ReadPreference: longo.ReadPreference.Primary,
-	})
+	var test = longo.NewModel[[]*TestDB](context.Background(), mgo).DB("Test_2").C("Test_Model_DeleteMany", options.Collection().SetReadPreference(longo.ReadPreference.Primary))
 	_, err := test.Insert(&TestDB{ID: 1, Add: 1}, &TestDB{ID: 2, Add: 2}).Exec()
 	assert.True(t, err == nil, err)
 	_, err = test.Delete(bson.M{}).Exec()
@@ -155,9 +143,7 @@ func Test_Model_DeleteMany(t *testing.T) {
 }
 
 func Test_Model_Count(t *testing.T) {
-	var test = longo.NewModel[[]*TestDB](context.Background(), mgo).DB("Test_2").C("Test_Model_Count", &options.CollectionOptions{
-		ReadPreference: longo.ReadPreference.Primary,
-	})
+	var test = longo.NewModel[[]*TestDB](context.Background(), mgo).DB("Test_2").C("Test_Model_Count", options.Collection().SetReadPreference(longo.ReadPreference.Primary))
 	_, err := test.Insert(&TestDB{ID: 1, Add: 1}, &TestDB{ID: 2, Add: 2}).Exec()
 	assert.True(t, err == nil, err)
 	a, err := test.Find(bson.M{}).Count()
@@ -166,9 +152,7 @@ func Test_Model_Count(t *testing.T) {
 }
 
 func Test_Model_CountBy(t *testing.T) {
-	var test = longo.NewModel[[]*TestDB](context.Background(), mgo).DB("Test_2").C("Test_Model_CountBy", &options.CollectionOptions{
-		ReadPreference: longo.ReadPreference.Primary,
-	})
+	var test = longo.NewModel[[]*TestDB](context.Background(), mgo).DB("Test_2").C("Test_Model_CountBy", options.Collection().SetReadPreference(longo.ReadPreference.Primary))
 	_, err := test.Insert(&TestDB{ID: 1, Add: 1}, &TestDB{ID: 2, Add: 2}).Exec()
 	assert.True(t, err == nil, err)
 	a, err := test.Find(bson.M{"id": 1}).Count()
@@ -177,9 +161,7 @@ func Test_Model_CountBy(t *testing.T) {
 }
 
 func Test_Model_Aggregate(t *testing.T) {
-	var test = longo.NewModel[[]*TestDB](context.Background(), mgo).DB("Test_2").C("Test_Model_Aggregate", &options.CollectionOptions{
-		ReadPreference: longo.ReadPreference.Primary,
-	})
+	var test = longo.NewModel[[]*TestDB](context.Background(), mgo).DB("Test_2").C("Test_Model_Aggregate", options.Collection().SetReadPreference(longo.ReadPreference.Primary))
 	_, err := test.Insert(&TestDB{ID: 1, Add: 1}, &TestDB{ID: 2, Add: 2}).Exec()
 	assert.True(t, err == nil, err)
 	var a []struct {
@@ -192,9 +174,7 @@ func Test_Model_Aggregate(t *testing.T) {
 }
 
 func Test_Model_AggregateOne(t *testing.T) {
-	var test = longo.NewModel[[]*TestDB](context.Background(), mgo).DB("Test_2").C("Test_Model_AggregateOne", &options.CollectionOptions{
-		ReadPreference: longo.ReadPreference.Primary,
-	})
+	var test = longo.NewModel[[]*TestDB](context.Background(), mgo).DB("Test_2").C("Test_Model_AggregateOne", options.Collection().SetReadPreference(longo.ReadPreference.Primary))
 	_, err := test.Insert(&TestDB{ID: 1, Add: 1}, &TestDB{ID: 2, Add: 2}).Exec()
 	assert.True(t, err == nil, err)
 	var a []struct {
@@ -206,9 +186,7 @@ func Test_Model_AggregateOne(t *testing.T) {
 }
 
 func Test_Model_FindOneAndUpdate(t *testing.T) {
-	var test = longo.NewModel[[]*TestDB](context.Background(), mgo).DB("Test_2").C("Test_Model_FindOneAndUpdate", &options.CollectionOptions{
-		ReadPreference: longo.ReadPreference.Primary,
-	})
+	var test = longo.NewModel[[]*TestDB](context.Background(), mgo).DB("Test_2").C("Test_Model_FindOneAndUpdate", options.Collection().SetReadPreference(longo.ReadPreference.Primary))
 	_, err := test.Insert(&TestDB{ID: 1, Add: 1}, &TestDB{ID: 2, Add: 2}).Exec()
 	assert.True(t, err == nil, err)
 	a, err := test.FindOneAndUpdate(bson.M{"id": 1}, bson.M{"$set": bson.M{"add": 3}}).ReturnDocument().Exec()
@@ -222,9 +200,7 @@ func Test_Model_FindOneAndUpdate(t *testing.T) {
 }
 
 func Test_Model_FindAndDelete(t *testing.T) {
-	var test = longo.NewModel[[]*TestDB](context.Background(), mgo).DB("Test_2").C("Test_Model_FindAndDelete", &options.CollectionOptions{
-		ReadPreference: longo.ReadPreference.Primary,
-	})
+	var test = longo.NewModel[[]*TestDB](context.Background(), mgo).DB("Test_2").C("Test_Model_FindAndDelete", options.Collection().SetReadPreference(longo.ReadPreference.Primary))
 	_, err := test.Insert(&TestDB{ID: 1, Add: 1}, &TestDB{ID: 2, Add: 2}).Exec()
 	assert.True(t, err == nil, err)
 	a, err := test.FindOneAndDelete(bson.M{"id": 1}).Exec()
@@ -237,9 +213,7 @@ func Test_Model_FindAndDelete(t *testing.T) {
 }
 
 func Test_Model_FindOneAndReplace(t *testing.T) {
-	var test = longo.NewModel[[]*TestDB](context.Background(), mgo).DB("Test_2").C("Test_Model_FindOneAndReplace", &options.CollectionOptions{
-		ReadPreference: longo.ReadPreference.Primary,
-	})
+	var test = longo.NewModel[[]*TestDB](context.Background(), mgo).DB("Test_2").C("Test_Model_FindOneAndReplace", options.Collection().SetReadPreference(longo.ReadPreference.Primary))
 	_, err := test.Insert(&TestDB{ID: 1, Add: 1}, &TestDB{ID: 2, Add: 2}).Exec()
 	assert.True(t, err == nil, err)
 	a, err := test.FindOneAndReplace(bson.M{"id": 1}, &TestDB{ID: 1, Add: 3}).ReturnDocument().Exec()
@@ -253,9 +227,7 @@ func Test_Model_FindOneAndReplace(t *testing.T) {
 }
 
 func Test_Model_FindOneAndUpsert(t *testing.T) {
-	var test = longo.NewModel[[]*TestDB](context.Background(), mgo).DB("Test_2").C("Test_Model_FindOneAndUpsert", &options.CollectionOptions{
-		ReadPreference: longo.ReadPreference.Primary,
-	})
+	var test = longo.NewModel[[]*TestDB](context.Background(), mgo).DB("Test_2").C("Test_Model_FindOneAndUpsert", options.Collection().SetReadPreference(longo.ReadPreference.Primary))
 	_, err := test.Insert(&TestDB{ID: 1, Add: 1}, &TestDB{ID: 2, Add: 2}).Exec()
 	assert.True(t, err == nil, err)
 	a, err := test.FindOneAndReplace(bson.M{"id": 4}, &TestDB{ID: 4, Add: 4}).ReturnDocument().Upsert().Exec()
@@ -265,9 +237,7 @@ func Test_Model_FindOneAndUpsert(t *testing.T) {
 }
 
 func Test_Model_FindOneAndReturnDocument(t *testing.T) {
-	var test = longo.NewModel[[]*TestDB](context.Background(), mgo).DB("Test_2").C("Test_Model_FindOneAndReturnDocument", &options.CollectionOptions{
-		ReadPreference: longo.ReadPreference.Primary,
-	})
+	var test = longo.NewModel[[]*TestDB](context.Background(), mgo).DB("Test_2").C("Test_Model_FindOneAndReturnDocument", options.Collection().SetReadPreference(longo.ReadPreference.Primary))
 	_, err := test.Insert(&TestDB{ID: 1, Add: 1}, &TestDB{ID: 2, Add: 2}).Exec()
 	assert.True(t, err == nil, err)
 	a, err := test.FindOneAndReplace(bson.M{"id": 1}, &TestDB{ID: 1, Add: 3}).ReturnDocument().Exec()
@@ -276,9 +246,7 @@ func Test_Model_FindOneAndReturnDocument(t *testing.T) {
 }
 
 func Test_Model_BulkInsert(t *testing.T) {
-	var test = longo.NewModel[[]*TestDB](context.Background(), mgo).DB("Test_2").C("Test_Model_BulkWrite", &options.CollectionOptions{
-		ReadPreference: longo.ReadPreference.Primary,
-	})
+	var test = longo.NewModel[[]*TestDB](context.Background(), mgo).DB("Test_2").C("Test_Model_BulkWrite", options.Collection().SetReadPreference(longo.ReadPreference.Primary))
 
 	models := []mongo.WriteModel{
 		mongo.NewInsertOneModel().SetDocument(
@@ -299,9 +267,7 @@ func Test_Model_BulkInsert(t *testing.T) {
 }
 
 func Test_Model_BulkUpdate(t *testing.T) {
-	var test = longo.NewModel[[]*TestDB](context.Background(), mgo).DB("Test_2").C("Test_Model_BulkWrite", &options.CollectionOptions{
-		ReadPreference: longo.ReadPreference.Primary,
-	})
+	var test = longo.NewModel[[]*TestDB](context.Background(), mgo).DB("Test_2").C("Test_Model_BulkWrite", options.Collection().SetReadPreference(longo.ReadPreference.Primary))
 
 	models := []mongo.WriteModel{
 		mongo.NewUpdateOneModel().SetFilter(
@@ -330,9 +296,7 @@ func Test_Model_BulkUpdate(t *testing.T) {
 }
 
 func Test_Model_BulkDelete(t *testing.T) {
-	var test = longo.NewModel[[]*TestDB](context.Background(), mgo).DB("Test_2").C("Test_Model_BulkWrite", &options.CollectionOptions{
-		ReadPreference: longo.ReadPreference.Primary,
-	})
+	var test = longo.NewModel[[]*TestDB](context.Background(), mgo).DB("Test_2").C("Test_Model_BulkWrite", options.Collection().SetReadPreference(longo.ReadPreference.Primary))
 
 	models := []mongo.WriteModel{
 		mongo.NewDeleteOneModel().SetFilter(
@@ -355,9 +319,7 @@ func Test_Model_BulkDelete(t *testing.T) {
 func Test_Model_CreateIndex(t *testing.T) {
 	time.Sleep(time.Second * 3)
 
-	var test = longo.NewModel[[]*TestDB](context.Background(), mgo).DB("Test_2").C("Test_Model_CreateIndex", &options.CollectionOptions{
-		ReadPreference: longo.ReadPreference.Primary,
-	})
+	var test = longo.NewModel[[]*TestDB](context.Background(), mgo).DB("Test_2").C("Test_Model_CreateIndex", options.Collection().SetReadPreference(longo.ReadPreference.Primary))
 
 	var err = test.CreateIndex()
 	assert.True(t, err == nil, err)

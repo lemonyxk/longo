@@ -13,13 +13,13 @@ package longo
 import (
 	"context"
 	"fmt"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 type BulkWrite struct {
 	collection       *mongo.Collection
-	bulkWriteOptions *options.BulkWriteOptions
+	bulkWriteOptions options.Lister[options.BulkWriteOptions]
 	models           []mongo.WriteModel
 	sessionContext   context.Context
 
@@ -31,10 +31,10 @@ type BulkWrite struct {
 }
 
 func NewBulkWrite(ctx context.Context, collection *mongo.Collection, models []mongo.WriteModel) *BulkWrite {
-	return &BulkWrite{collection: collection, bulkWriteOptions: &options.BulkWriteOptions{}, models: models, sessionContext: ctx}
+	return &BulkWrite{collection: collection, bulkWriteOptions: options.BulkWrite(), models: models, sessionContext: ctx}
 }
 
-func (f *BulkWrite) Option(opt *options.BulkWriteOptions) *BulkWrite {
+func (f *BulkWrite) Option(opt options.Lister[options.BulkWriteOptions]) *BulkWrite {
 	f.bulkWriteOptions = opt
 	return f
 }
@@ -70,37 +70,6 @@ func (f *BulkWrite) MustInserted() *BulkWrite {
 }
 
 func (f *BulkWrite) Exec() (*mongo.BulkWriteResult, error) {
-
-	//var t = time.Now()
-	//var res *mongo.BulkWriteResult
-	//var err error
-	//
-	//defer func() {
-	//	if res == nil {
-	//		res = &mongo.BulkWriteResult{}
-	//	}
-	//	call.Default.Call(call.Record{
-	//		Meta: call.Meta{
-	//			Database:   f.collection.Database().Name(),
-	//			Collection: f.collection.Name(),
-	//			Type:       call.BulkWrite,
-	//		},
-	//		Query: call.Query{
-	//			Filter:  nil,
-	//			Updater: nil,
-	//		},
-	//		Result: call.Result{
-	//			Insert: res.InsertedCount,
-	//			Update: res.ModifiedCount,
-	//			Delete: res.DeletedCount,
-	//			Match:  res.MatchedCount,
-	//			Upsert: res.UpsertedCount,
-	//		},
-	//		Consuming: time.Since(t).Microseconds(),
-	//		Error:     err,
-	//	})
-	//}()
-
 	res, err := f.collection.BulkWrite(f.sessionContext, f.models, f.bulkWriteOptions)
 	if err != nil {
 		return nil, err
@@ -130,6 +99,5 @@ func (f *BulkWrite) Exec() (*mongo.BulkWriteResult, error) {
 			return nil, fmt.Errorf("update bulkwrite error: %s", "no inserted")
 		}
 	}
-
 	return res, nil
 }

@@ -12,9 +12,9 @@ package longo
 
 import (
 	"context"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 // ReadPreference
@@ -45,11 +45,11 @@ type Collection struct {
 	db                string
 	collection        string
 	context           context.Context
-	collectionOptions []*options.CollectionOptions
-	databaseOptions   []*options.DatabaseOptions
+	collectionOptions []options.Lister[options.CollectionOptions]
+	databaseOptions   []options.Lister[options.DatabaseOptions]
 }
 
-func (q *Collection) Clone() (*mongo.Collection, error) {
+func (q *Collection) Clone() *mongo.Collection {
 	return q.client.Database(q.db, q.databaseOptions...).Collection(q.collection, q.collectionOptions...).Clone()
 }
 
@@ -61,20 +61,21 @@ func (q *Collection) Drop() error {
 	return q.client.Database(q.db, q.databaseOptions...).Collection(q.collection, q.collectionOptions...).Drop(context.Background())
 }
 
-func (q *Collection) CountDocuments(filter interface{}, opts ...*options.CountOptions) (int64, error) {
-	return q.client.Database(q.db, q.databaseOptions...).Collection(q.collection, q.collectionOptions...).CountDocuments(context.Background(), filter, opts...)
+func (q *Collection) CountDocuments(filter interface{}, opts options.Lister[options.CountOptions]) (int64, error) {
+	return q.client.Database(q.db, q.databaseOptions...).Collection(q.collection, q.collectionOptions...).CountDocuments(context.Background(), filter, opts)
 }
 
-func (q *Collection) EstimatedDocumentCount(opts ...*options.EstimatedDocumentCountOptions) (int64, error) {
-	return q.client.Database(q.db, q.databaseOptions...).Collection(q.collection, q.collectionOptions...).EstimatedDocumentCount(context.Background(), opts...)
+func (q *Collection) EstimatedDocumentCount(opts options.Lister[options.EstimatedDocumentCountOptions]) (int64, error) {
+	return q.client.Database(q.db, q.databaseOptions...).Collection(q.collection, q.collectionOptions...).EstimatedDocumentCount(context.Background(), opts)
 }
 
-func (q *Collection) Distinct(fieldName string, filter interface{}, opts ...*options.DistinctOptions) ([]interface{}, error) {
-	return q.client.Database(q.db, q.databaseOptions...).Collection(q.collection, q.collectionOptions...).Distinct(context.Background(), fieldName, filter, opts...)
+func (q *Collection) Distinct(fieldName string, filter interface{}, opts options.Lister[options.DistinctOptions]) *DistinctResult {
+	res := q.client.Database(q.db, q.databaseOptions...).Collection(q.collection, q.collectionOptions...).Distinct(context.Background(), fieldName, filter, opts)
+	return &DistinctResult{distinctResult: res}
 }
 
-func (q *Collection) Watch(pipeline interface{}, opts ...*options.ChangeStreamOptions) *ChangeStreamResult {
-	res, err := q.client.Database(q.db, q.databaseOptions...).Collection(q.collection, q.collectionOptions...).Watch(context.Background(), pipeline, opts...)
+func (q *Collection) Watch(pipeline interface{}, opts options.Lister[options.ChangeStreamOptions]) *ChangeStreamResult {
+	res, err := q.client.Database(q.db, q.databaseOptions...).Collection(q.collection, q.collectionOptions...).Watch(context.Background(), pipeline, opts)
 	return &ChangeStreamResult{changeStream: res, err: err}
 }
 

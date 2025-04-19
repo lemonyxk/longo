@@ -13,7 +13,7 @@ package longo
 import (
 	"context"
 	"fmt"
-	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 type MultiResult struct {
@@ -25,10 +25,6 @@ func (ag *MultiResult) All(sessionContext context.Context, result interface{}) e
 	if ag.err != nil {
 		return ag.err
 	}
-	// refResult := reflect.ValueOf(result)
-	// if refResult.Kind() != reflect.Ptr || refResult.Elem().Kind() != reflect.Slice {
-	// 	return errors.New("result argument must be a slice address")
-	// }
 
 	if ag.cursor == nil {
 		return fmt.Errorf("cursor is nil")
@@ -40,24 +36,3 @@ func (ag *MultiResult) All(sessionContext context.Context, result interface{}) e
 
 	return ag.cursor.All(sessionContext, result)
 }
-
-//func (ag *MultiResult) One(sessionContext context.Context, result interface{}) error {
-//	if ag.err != nil {
-//		return ag.err
-//	}
-//
-//	if ag.cursor == nil {
-//		return fmt.Errorf("cursor is nil")
-//	}
-//
-//	if ag.cursor.Err() != nil {
-//		return ag.cursor.Err()
-//	}
-//
-//	ag.cursor.Next(sessionContext)
-//	var err = ag.cursor.Decode(result)
-//	if err == io.EOF {
-//		err = nil
-//	}
-//	return err
-//}

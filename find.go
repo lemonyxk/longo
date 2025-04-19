@@ -12,45 +12,61 @@ package longo
 
 import (
 	"context"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 	"reflect"
 )
 
 type Find struct {
 	collection     *mongo.Collection
-	option         *options.FindOptions
+	option         *options.FindOptionsBuilder
 	filter         interface{}
 	sessionContext context.Context
 }
 
 func NewFind(ctx context.Context, collection *mongo.Collection, filter interface{}) *Find {
-	return &Find{collection: collection, option: &options.FindOptions{}, filter: filter, sessionContext: ctx}
+	return &Find{collection: collection, option: options.Find(), filter: filter, sessionContext: ctx}
 }
 
 func (f *Find) Hit(hit interface{}) *Find {
-	f.option.Hint = hit
+	f.option.Opts = append(f.option.Opts, func(findOptions *options.FindOptions) error {
+		findOptions.Hint = hit
+		return nil
+	})
 	return f
 }
 
 func (f *Find) Sort(sort interface{}) *Find {
-	f.option.Sort = sort
+	f.option.Opts = append(f.option.Opts, func(findOptions *options.FindOptions) error {
+		findOptions.Sort = sort
+		return nil
+	})
 	return f
 }
 
 func (f *Find) Limit(limit int64) *Find {
-	f.option.Limit = &limit
+	f.option.Opts = append(f.option.Opts, func(findOptions *options.FindOptions) error {
+		findOptions.Limit = &limit
+		return nil
+	})
 	return f
 }
 
 func (f *Find) Skip(skip int64) *Find {
-	f.option.Skip = &skip
+	f.option.Opts = append(f.option.Opts, func(findOptions *options.FindOptions) error {
+		findOptions.Skip = &skip
+		return nil
+	})
 	return f
 }
 
 func (f *Find) Projection(projection interface{}) *Find {
-	f.option.Projection = projection
+	f.option.Opts = append(f.option.Opts, func(findOptions *options.FindOptions) error {
+		findOptions.Projection = projection
+		return nil
+	})
 	return f
 }
 
@@ -59,7 +75,10 @@ func (f *Find) Include(fields ...string) *Find {
 	for i := 0; i < len(fields); i++ {
 		projection[fields[i]] = 1
 	}
-	f.option.Projection = projection
+	f.option.Opts = append(f.option.Opts, func(findOptions *options.FindOptions) error {
+		findOptions.Projection = projection
+		return nil
+	})
 	return f
 }
 
@@ -68,7 +87,10 @@ func (f *Find) Exclude(fields ...string) *Find {
 	for i := 0; i < len(fields); i++ {
 		projection[fields[i]] = 0
 	}
-	f.option.Projection = projection
+	f.option.Opts = append(f.option.Opts, func(findOptions *options.FindOptions) error {
+		findOptions.Projection = projection
+		return nil
+	})
 	return f
 }
 
@@ -77,40 +99,12 @@ func (f *Find) Context(ctx context.Context) *Find {
 	return f
 }
 
-func (f *Find) Option(opt *options.FindOptions) *Find {
+func (f *Find) Option(opt *options.FindOptionsBuilder) *Find {
 	f.option = opt
 	return f
 }
 
-func (f *Find) Count(opts ...*options.CountOptions) (int64, error) {
-
-	//var t = time.Now()
-	//var res int64 = 0
-	//var err error
-	//
-	//defer func() {
-	//	call.Default.Call(call.Record{
-	//		Meta: call.Meta{
-	//			Database:   f.collection.Database().Name(),
-	//			Collection: f.collection.Name(),
-	//			Type:       call.Count,
-	//		},
-	//		Query: call.Query{
-	//			Filter:  nil,
-	//			Updater: nil,
-	//		},
-	//		Result: call.Result{
-	//			Insert: 0,
-	//			Update: 0,
-	//			Delete: 0,
-	//			Match:  res,
-	//			Upsert: 0,
-	//		},
-	//		Consuming: time.Since(t).Microseconds(),
-	//		Error:     err,
-	//	})
-	//}()
-
+func (f *Find) Count(opts ...options.Lister[options.CountOptions]) (int64, error) {
 	var ref = reflect.ValueOf(f.filter)
 	if ref.IsNil() || (ref.Kind() == reflect.Map && ref.Len() == 0) {
 		res, err := f.collection.EstimatedDocumentCount(f.sessionContext)
@@ -122,49 +116,11 @@ func (f *Find) Count(opts ...*options.CountOptions) (int64, error) {
 }
 
 func (f *Find) All(result interface{}) error {
-
-	//var t = time.Now()
-	//var res int64 = 0
-	//var err error
-	//
-	//defer func() {
-	//	call.Default.Call(call.Record{
-	//		Meta: call.Meta{
-	//			Database:   f.collection.Database().Name(),
-	//			Collection: f.collection.Name(),
-	//			Type:       call.Find,
-	//		},
-	//		Query: call.Query{
-	//			Filter:  f.filter,
-	//			Updater: nil,
-	//		},
-	//		Result: call.Result{
-	//			Insert: 0,
-	//			Update: 0,
-	//			Delete: 0,
-	//			Match:  res,
-	//			Upsert: 0,
-	//		},
-	//		Consuming: time.Since(t).Microseconds(),
-	//		Error:     err,
-	//	})
-	//}()
-
 	cursor, err := f.collection.Find(f.sessionContext, f.filter, f.option)
 	var all = &MultiResult{cursor: cursor, err: err}
 	err = all.All(f.sessionContext, result)
 	if err != nil {
 		return err
 	}
-	//res = int64(reflect.ValueOf(result).Elem().Len())
 	return nil
 }
-
-//func (f *Find) One(result interface{}) error {
-//	if f.err != nil {
-//		return f.err
-//	}
-//	cursor := f.collection.FindOne(f.sessionContext, f.filter, f.option)
-//	var res = &SingleResult{singleResult: cursor}
-//	return res.One(result)
-//}

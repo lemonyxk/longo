@@ -11,20 +11,20 @@
 package longo
 
 import (
+	"go.mongodb.org/mongo-driver/v2/bson"
 	"strings"
 
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo/readconcern"
-	"go.mongodb.org/mongo-driver/mongo/readpref"
-	"go.mongodb.org/mongo-driver/mongo/writeconcern"
+	"go.mongodb.org/mongo-driver/v2/mongo/readconcern"
+	"go.mongodb.org/mongo-driver/v2/mongo/readpref"
+	"go.mongodb.org/mongo-driver/v2/mongo/writeconcern"
 )
 
 func NewClient() *Client {
 	return &Client{}
 }
 
-func NewObjectID() primitive.ObjectID {
-	return primitive.NewObjectID()
+func NewObjectID() bson.ObjectID {
+	return bson.NewObjectID()
 }
 
 func NewReadPreference(readPreference string) *readpref.ReadPref {
@@ -47,7 +47,7 @@ func NewWriteConcern(writeConcern WriteConcern) *writeconcern.WriteConcern {
 	}
 
 	wc.Journal = &writeConcern.J
-	wc.WTimeout = writeConcern.WTimeout
+	//wc.WTimeout = writeConcern.WTimeout
 
 	return &wc
 }
