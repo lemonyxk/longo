@@ -11,11 +11,11 @@
 package longo
 
 import (
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 	"strings"
 
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 // in array
@@ -43,8 +43,7 @@ func parseIndex(indexArr []string) []mongo.IndexModel {
 			continue
 		}
 
-		var b = isUnique(indexConfig)
-		var im = mongo.IndexModel{Keys: bson.M{indexName[0].name: indexName[0].sort}, Options: &options.IndexOptions{Unique: &b}}
+		var im = mongo.IndexModel{Keys: bson.M{indexName[0].name: indexName[0].sort}, Options: options.Index().SetUnique(isUnique(indexConfig))}
 
 		res = append(res, im)
 	}
@@ -67,8 +66,7 @@ func parseIndexes(indexesArr []string) []mongo.IndexModel {
 			continue
 		}
 
-		var b = isUnique(indexConfig)
-		var im = mongo.IndexModel{Keys: bson.D{}, Options: &options.IndexOptions{Unique: &b}}
+		var im = mongo.IndexModel{Keys: bson.D{}, Options: options.Index().SetUnique(isUnique(indexConfig))}
 
 		var keys = bson.D{}
 		for j := 0; j < len(indexName); j++ {

@@ -11,14 +11,14 @@
 package longo
 
 import (
-	"context"
+	"fmt"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 	"net/url"
 	"strings"
 	"time"
 
-	"go.mongodb.org/mongo-driver/bson/bsoncodec"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 type Client struct {
@@ -29,7 +29,7 @@ func (c *Client) SetReadPreference(readPreference string) {
 	c.config.ReadPreference = NewReadPreference(readPreference)
 }
 
-func (c *Client) SetRegister(register *bsoncodec.Registry) {
+func (c *Client) SetRegister(register *bson.Registry) {
 	c.config.Register = register
 }
 
@@ -45,6 +45,10 @@ func (c *Client) SetConnectTimeout(connectTimeout time.Duration) {
 	c.config.ConnectTimeout = connectTimeout
 }
 
+func (c *Client) SetTimeout(timeout time.Duration) {
+	c.config.Timeout = timeout
+}
+
 func (c *Client) SetUrl(url string) {
 	c.config.Url = url
 }
@@ -56,18 +60,6 @@ func (c *Client) init(config *Config) {
 	}
 
 	c.config = *config
-
-	if c.config.Url == "" {
-		if len(c.config.Hosts) == 0 {
-			c.config.Hosts = []string{"127.0.0.1:27017"}
-		}
-		var hostsString = strings.Join(c.config.Hosts, ",")
-		if c.config.User == "" || c.config.Pass == "" {
-			c.config.Url = "mongodb://" + hostsString
-		} else {
-			c.config.Url = "mongodb://" + c.config.User + ":" + c.config.Pass + "@" + hostsString
-		}
-	}
 
 	if c.config.ReadPreference == nil {
 		c.config.ReadPreference = ReadPreference.Primary
@@ -87,6 +79,18 @@ func (c *Client) init(config *Config) {
 
 	if c.config.Timeout == 0 {
 		c.config.Timeout = 6 * time.Second
+	}
+
+	if c.config.Url == "" {
+		if len(c.config.Hosts) == 0 {
+			c.config.Hosts = []string{"127.0.0.1:27017"}
+		}
+		var hostsString = strings.Join(c.config.Hosts, ",")
+		if c.config.User == "" || c.config.Pass == "" {
+			c.config.Url = fmt.Sprintf("mongodb://%s", hostsString)
+		} else {
+			c.config.Url = fmt.Sprintf("mongodb://%s:%s@%s", c.config.User, c.config.Pass, hostsString)
+		}
 	}
 }
 
@@ -113,6 +117,12 @@ func (c *Client) Connect(config *Config, opts ...*options.ClientOptions) (*Mgo, 
 		u.RawQuery = q.Encode()
 	}
 
+	if c.config.WriteConcern.WTimeout != 0 {
+		var q = u.Query()
+		q.Set("wTimeoutMS", fmt.Sprintf("%d", c.config.WriteConcern.WTimeout.Milliseconds()))
+		u.RawQuery = q.Encode()
+	}
+
 	var option = options.Client().ApplyURI(u.String())
 
 	if config.Register != nil {
@@ -131,7 +141,7 @@ func (c *Client) Connect(config *Config, opts ...*options.ClientOptions) (*Mgo, 
 		Timeout:        &c.config.Timeout,
 	})
 
-	client, err := mongo.Connect(context.Background(), opts...)
+	client, err := mongo.Connect(opts...)
 
 	if err != nil {
 		return nil, err

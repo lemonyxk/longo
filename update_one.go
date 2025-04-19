@@ -13,13 +13,13 @@ package longo
 import (
 	"context"
 	"fmt"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 type UpdateOne struct {
 	collection      *mongo.Collection
-	updateOneOption *options.UpdateOptions
+	updateOneOption options.Lister[options.UpdateOneOptions]
 	filter          interface{}
 	update          interface{}
 	sessionContext  context.Context
@@ -30,10 +30,10 @@ type UpdateOne struct {
 }
 
 func NewUpdateOne(ctx context.Context, collection *mongo.Collection, filter interface{}, update interface{}) *UpdateOne {
-	return &UpdateOne{collection: collection, updateOneOption: &options.UpdateOptions{}, filter: filter, update: update, sessionContext: ctx}
+	return &UpdateOne{collection: collection, updateOneOption: options.UpdateOne(), filter: filter, update: update, sessionContext: ctx}
 }
 
-func (f *UpdateOne) Option(opt *options.UpdateOptions) *UpdateOne {
+func (f *UpdateOne) Option(opt options.Lister[options.UpdateOneOptions]) *UpdateOne {
 	f.updateOneOption = opt
 	return f
 }
@@ -59,37 +59,6 @@ func (f *UpdateOne) MustUpsert() *UpdateOne {
 }
 
 func (f *UpdateOne) Exec() (*mongo.UpdateResult, error) {
-
-	//var t = time.Now()
-	//var res *mongo.UpdateResult
-	//var err error
-	//
-	//defer func() {
-	//	if res == nil {
-	//		res = &mongo.UpdateResult{}
-	//	}
-	//	call.Default.Call(call.Record{
-	//		Meta: call.Meta{
-	//			Database:   f.collection.Database().Name(),
-	//			Collection: f.collection.Name(),
-	//			Type:       call.UpdateOne,
-	//		},
-	//		Query: call.Query{
-	//			Filter:  f.filter,
-	//			Updater: f.update,
-	//		},
-	//		Result: call.Result{
-	//			Insert: 0,
-	//			Update: res.ModifiedCount,
-	//			Delete: 0,
-	//			Match:  res.MatchedCount,
-	//			Upsert: res.UpsertedCount,
-	//		},
-	//		Consuming: time.Since(t).Microseconds(),
-	//		Error:     err,
-	//	})
-	//}()
-
 	res, err := f.collection.UpdateOne(f.sessionContext, f.filter, f.update, f.updateOneOption)
 	if err != nil {
 		return nil, err

@@ -13,13 +13,13 @@ package longo
 import (
 	"context"
 	"fmt"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 type ReplaceOne struct {
 	collection       *mongo.Collection
-	replaceOneOption *options.ReplaceOptions
+	replaceOneOption options.Lister[options.ReplaceOptions]
 	filter           interface{}
 	update           interface{}
 	sessionContext   context.Context
@@ -30,10 +30,10 @@ type ReplaceOne struct {
 }
 
 func NewReplaceOne(ctx context.Context, collection *mongo.Collection, filter interface{}, update interface{}) *ReplaceOne {
-	return &ReplaceOne{collection: collection, replaceOneOption: &options.ReplaceOptions{}, filter: filter, update: update, sessionContext: ctx}
+	return &ReplaceOne{collection: collection, replaceOneOption: options.Replace(), filter: filter, update: update, sessionContext: ctx}
 }
 
-func (f *ReplaceOne) Option(opt *options.ReplaceOptions) *ReplaceOne {
+func (f *ReplaceOne) Option(opt options.Lister[options.ReplaceOptions]) *ReplaceOne {
 	f.replaceOneOption = opt
 	return f
 }
@@ -59,37 +59,6 @@ func (f *ReplaceOne) MustUpsert() *ReplaceOne {
 }
 
 func (f *ReplaceOne) Exec() (*mongo.UpdateResult, error) {
-
-	//var t = time.Now()
-	//var res *mongo.UpdateResult
-	//var err error
-	//
-	//defer func() {
-	//	if res == nil {
-	//		res = &mongo.UpdateResult{}
-	//	}
-	//	call.Default.Call(call.Record{
-	//		Meta: call.Meta{
-	//			Database:   f.collection.Database().Name(),
-	//			Collection: f.collection.Name(),
-	//			Type:       call.ReplaceOne,
-	//		},
-	//		Query: call.Query{
-	//			Filter:  f.filter,
-	//			Updater: f.update,
-	//		},
-	//		Result: call.Result{
-	//			Insert: 0,
-	//			Update: res.ModifiedCount,
-	//			Delete: 0,
-	//			Match:  res.MatchedCount,
-	//			Upsert: res.UpsertedCount,
-	//		},
-	//		Consuming: time.Since(t).Microseconds(),
-	//		Error:     err,
-	//	})
-	//}()
-
 	res, err := f.collection.ReplaceOne(f.sessionContext, f.filter, f.update, f.replaceOneOption)
 	if err != nil {
 		return nil, err

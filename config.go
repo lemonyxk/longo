@@ -11,11 +11,11 @@
 package longo
 
 import (
+	"go.mongodb.org/mongo-driver/v2/bson"
 	"time"
 
-	"go.mongodb.org/mongo-driver/bson/bsoncodec"
-	"go.mongodb.org/mongo-driver/mongo/readconcern"
-	"go.mongodb.org/mongo-driver/mongo/readpref"
+	"go.mongodb.org/mongo-driver/v2/mongo/readconcern"
+	"go.mongodb.org/mongo-driver/v2/mongo/readpref"
 )
 
 type Config struct {
@@ -30,7 +30,7 @@ type Config struct {
 	WriteConcern   *WriteConcern
 	ConnectTimeout time.Duration
 	Timeout        time.Duration
-	Register       *bsoncodec.Registry
+	Register       *bson.Registry
 
 	// Messages are compressed when both parties enable network compression. Otherwise, messages between the parties are uncompressed.
 	// If you specify multiple compressors, then the order in which you list the compressors matter as well as the communication initiator.

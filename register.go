@@ -12,21 +12,17 @@ package longo
 
 import (
 	"errors"
+	"go.mongodb.org/mongo-driver/v2/bson"
 	"reflect"
-
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/bsoncodec"
-	"go.mongodb.org/mongo-driver/bson/bsonrw"
-	"go.mongodb.org/mongo-driver/bson/bsontype"
 )
 
 type NullDecoder struct {
-	defDecoder bsoncodec.ValueDecoder
+	defDecoder bson.ValueDecoder
 	zeroValue  reflect.Value
 }
 
-func (d *NullDecoder) DecodeValue(ctx bsoncodec.DecodeContext, vr bsonrw.ValueReader, val reflect.Value) error {
-	if vr.Type() != bsontype.Null {
+func (d *NullDecoder) DecodeValue(ctx bson.DecodeContext, vr bson.ValueReader, val reflect.Value) error {
+	if vr.Type() != bson.TypeNull {
 		return d.defDecoder.DecodeValue(ctx, vr, val)
 	}
 
@@ -41,7 +37,7 @@ func (d *NullDecoder) DecodeValue(ctx bsoncodec.DecodeContext, vr bsonrw.ValueRe
 	return nil
 }
 
-func NewNUll() *bsoncodec.RegistryBuilder {
+func NewNUll() *bson.Registry {
 	var customValues = []interface{}{
 		"", // string
 		[]string{},
@@ -57,11 +53,11 @@ func NewNUll() *bsoncodec.RegistryBuilder {
 		[]bool{},
 	}
 
-	var rb = bson.NewRegistryBuilder()
+	var rb = bson.NewRegistry()
 
 	for i := 0; i < len(customValues); i++ {
 		var t = reflect.TypeOf(customValues[i])
-		defDecoder, err := bson.DefaultRegistry.LookupDecoder(t)
+		defDecoder, err := rb.LookupDecoder(t)
 		if err != nil {
 			panic(err)
 		}
