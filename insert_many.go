@@ -20,11 +20,11 @@ import (
 type InsertMany struct {
 	collection       *mongo.Collection
 	insertManyOption options.Lister[options.InsertManyOptions]
-	document         []interface{}
+	document         interface{}
 	sessionContext   context.Context
 }
 
-func NewInsertMany(ctx context.Context, collection *mongo.Collection, document []interface{}) *InsertMany {
+func NewInsertMany(ctx context.Context, collection *mongo.Collection, document interface{}) *InsertMany {
 	return &InsertMany{collection: collection, insertManyOption: options.InsertMany(), document: document, sessionContext: ctx}
 }
 

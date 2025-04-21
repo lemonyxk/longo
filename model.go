@@ -150,11 +150,7 @@ func (p *Model[T, E]) UpdateByID(id interface{}, update interface{}) *UpdateMany
 }
 
 func (p *Model[T, E]) Insert(document ...*E) *InsertMany {
-	var docs = make([]interface{}, len(document))
-	for i := 0; i < len(docs); i++ {
-		docs[i] = document[i]
-	}
-	return p.Handler.DB(p.DB, p.DatabaseOptions...).C(p.C, p.CollectionOptions...).InsertMany(docs).Context(p.Ctx)
+	return p.Handler.DB(p.DB, p.DatabaseOptions...).C(p.C, p.CollectionOptions...).InsertMany(document).Context(p.Ctx)
 }
 
 func (p *Model[T, E]) Delete(filter interface{}) *DeleteMany {

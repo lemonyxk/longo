@@ -125,7 +125,7 @@ func (q *Collection) InsertOne(document interface{}) *InsertOne {
 	return NewInsertOne(q.context, q.client.Database(q.db, q.databaseOptions...).Collection(q.collection, q.collectionOptions...), document)
 }
 
-func (q *Collection) InsertMany(document []interface{}) *InsertMany {
+func (q *Collection) InsertMany(document interface{}) *InsertMany {
 	return NewInsertMany(q.context, q.client.Database(q.db, q.databaseOptions...).Collection(q.collection, q.collectionOptions...), document)
 }
 
